@@ -786,6 +786,28 @@ body {
 .notification i { font-size: 16px; }
 .notification.success i { color: var(--verde); }
 .notification.error i { color: var(--vermelho); }
+
+/* Age indicator */
+.age-indicator {
+  background: linear-gradient(135deg, var(--verde-bg), #d4efe3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.age-stats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.age-stat {
+  background: white;
+  border-radius: 10px;
+  padding: 8px 16px;
+  text-align: center;
+}
+.age-stat-label { font-size: 11px; color: var(--cinza-4); }
+.age-stat-value { font-size: 18px; font-weight: 700; color: var(--verde-escuro); }
 </style>
 </head>
 <body>
@@ -958,6 +980,18 @@ body {
           </div>
         </div>
 
+        <!-- Idade das Aves -->
+        <div class="age-indicator" id="age-indicator" style="display:none;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa fa-calendar-week" style="font-size: 24px; color: var(--verde);"></i>
+            <div>
+              <strong>Idade do Lote</strong>
+              <div id="age-detail" style="font-size: 13px; color: var(--cinza-5);">Carregando...</div>
+            </div>
+          </div>
+          <div class="age-stats" id="age-stats"></div>
+        </div>
+
         <div class="grid-2">
           <div class="card">
             <div class="card-header">
@@ -1024,6 +1058,10 @@ body {
           <div class="card">
             <div class="card-header"><span class="card-title">Registrar Coleta Diária</span></div>
             <div class="card-body">
+              <div class="alert alert-info" style="background:var(--verde-bg); margin-bottom:16px;">
+                <i class="fa fa-info-circle"></i>
+                Os ovos serão registrados automaticamente para o lote ativo.
+              </div>
               <div class="form-group">
                 <label>Data da Coleta</label>
                 <input type="date" id="ovo-data">
@@ -1070,7 +1108,7 @@ body {
             </div>
             <div class="card-body" style="padding:0; max-height:400px; overflow-y:auto;">
               <table class="data-table">
-                <thead><tr><th>Data</th><th>Inteiros</th><th>Trincados</th><th>Total</th><th>Med.</th></tr></thead>
+                <thead><tr><th>Data</th><th>Lote</th><th>Inteiros</th><th>Trincados</th><th>Total</th><th>Med.</th></tr></thead>
                 <tbody id="tb-ovos"></tbody>
               </table>
             </div>
@@ -1082,8 +1120,12 @@ body {
       <section class="page-section" id="page-racao">
         <div class="grid-2">
           <div class="card">
-            <div class="card-header"><span class="card-title">Lançar Consumo</span></div>
+            <div class="card-header"><span class="card-title">Lançar Consumo com Rateio</span></div>
             <div class="card-body">
+              <div class="alert alert-success" style="background:var(--verde-bg); margin-bottom:16px;">
+                <i class="fa fa-calculator"></i>
+                O sistema irá distribuir o custo de ração e água automaticamente entre todas as aves ativas!
+              </div>
               <div class="form-group">
                 <label>Data</label>
                 <input type="date" id="ra-data">
@@ -1103,7 +1145,7 @@ body {
                 <input type="number" id="ra-racao-kg" placeholder="0.00" min="0" step="0.1">
               </div>
               <div class="form-group">
-                <label>Custo da Ração (R$)</label>
+                <label>Custo Total da Ração (R$)</label>
                 <div class="input-prefix">
                   <span>R$</span>
                   <input type="number" id="ra-racao-custo" placeholder="0,00" min="0" step="0.01">
@@ -1115,14 +1157,40 @@ body {
                 <input type="number" id="ra-agua-litros" placeholder="0" min="0" step="0.1">
               </div>
               <div class="form-group">
-                <label>Custo da Água (R$)</label>
+                <label>Custo Total da Água (R$)</label>
                 <div class="input-prefix">
                   <span>R$</span>
                   <input type="number" id="ra-agua-custo" placeholder="0,00" min="0" step="0.01">
                 </div>
               </div>
+              
+              <!-- Preview do rateio -->
+              <div class="rateio-box" id="preview-rateio" style="display:none;">
+                <h4><i class="fa fa-chart-line"></i> Rateio do Consumo</h4>
+                <div class="rateio-row">
+                  <span class="rateio-label">Aves ativas:</span>
+                  <span class="rateio-value" id="preview-aves">0</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">Ração por ave:</span>
+                  <span class="rateio-value" id="preview-racao-ave">0 kg</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">Custo ração/ave:</span>
+                  <span class="rateio-value" id="preview-custo-racao-ave">R$ 0,00</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">Água por ave:</span>
+                  <span class="rateio-value" id="preview-agua-ave">0 L</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">Custo água/ave:</span>
+                  <span class="rateio-value" id="preview-custo-agua-ave">R$ 0,00</span>
+                </div>
+              </div>
+              
               <button class="btn btn-primary" onclick="salvarRacao()">
-                <i class="fa fa-save"></i> Registrar Consumo
+                <i class="fa fa-save"></i> Registrar Consumo com Rateio
               </button>
             </div>
           </div>
@@ -1131,7 +1199,7 @@ body {
             <div class="card-header"><span class="card-title">Histórico de Consumo</span></div>
             <div class="card-body" style="padding:0; max-height:460px; overflow-y:auto;">
               <table class="data-table">
-                <thead><tr><th>Data</th><th>Ração (kg)</th><th>Custo Ração</th><th>Água (L)</th><th>Custo Água</th></tr></thead>
+                <thead><tr><th>Data</th><th>Ração (kg)</th><th>Custo Ração</th><th>Água (L)</th><th>Custo Água</th><th>Custo/Ave</th></tr></thead>
                 <tbody id="tb-racao"></tbody>
               </table>
             </div>
@@ -1171,7 +1239,7 @@ body {
                   <input type="text" id="med-dose" placeholder="Ex: 10ml, 500g">
                 </div>
                 <div class="form-group">
-                  <label>Custo (R$)</label>
+                  <label>Custo Total (R$)</label>
                   <div class="input-prefix">
                     <span>R$</span>
                     <input type="number" id="med-custo" placeholder="0,00" step="0.01">
@@ -1196,7 +1264,7 @@ body {
             <div class="card-header"><span class="card-title">Histórico de Medicações</span></div>
             <div class="card-body" style="padding:0; max-height:460px; overflow-y:auto;">
               <table class="data-table">
-                <thead><tr><th>Data</th><th>Produto</th><th>Finalidade</th><th>Custo</th></tr></thead>
+                <thead><tr><th>Data</th><th>Produto</th><th>Finalidade</th><th>Custo</th><th>Custo/Ave</th></tr></thead>
                 <tbody id="tb-medicacao"></tbody>
               </table>
             </div>
@@ -1561,7 +1629,7 @@ body {
             <div class="card-header"><span class="card-title">Lotes Cadastrados</span></div>
             <div class="card-body" style="padding:0;">
               <table class="data-table">
-                <thead><tr><th>Nome</th><th>Raça</th><th>Nascimento</th><th>Qtd.</th><th>Ativo</th></tr></thead>
+                <thead><tr><th>Nome</th><th>Raça</th><th>Nascimento</th><th>Idade</th><th>Qtd.</th><th>Ativo</th></tr></thead>
                 <tbody id="tb-lotes"></tbody>
               </table>
             </div>
@@ -1575,7 +1643,6 @@ body {
 
 <script>
 // ===== FIREBASE CONFIG =====
-// IMPORTANTE: Substitua estas credenciais pelas do seu projeto no Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyAUEmX8hw1o8EKU1fXA8DUNzNMQHfvEftc",
   authDomain: "ovonorte-94684.firebaseapp.com",
@@ -1586,7 +1653,6 @@ const firebaseConfig = {
   measurementId: "G-MHVG3FGXRC"
 };
 
-// ===== DEMO MODE (usa localStorage quando Firebase não configurado) =====
 let useDemo = true;
 let db = null;
 let auth = null;
@@ -1610,9 +1676,149 @@ function saveStore(key) {
   localStorage.setItem('ovo_' + key, JSON.stringify(STORE[key]));
 }
 
+// ===== HELPER FUNCTIONS =====
+function getActiveLote() {
+  return STORE.lotes.find(l => l.ativo) || STORE.lotes[0] || null;
+}
+
+function getLoteAves() {
+  const lote = getActiveLote();
+  if(!lote) return 0;
+  const totalMort = STORE.mortalidade.filter(m => m.loteId === lote.id).reduce((s,m) => s + (m.qtd||0), 0);
+  return Math.max(0, (lote.qtdInicial || 0) - totalMort);
+}
+
+function getAvesPorData(data) {
+  // Calcula quantas aves estavam vivas em uma determinada data
+  const lote = getActiveLote();
+  if(!lote) return 0;
+  
+  // Filtra mortalidades até a data
+  const mortAteData = STORE.mortalidade.filter(m => m.loteId === lote.id && m.data <= data).reduce((s,m) => s + (m.qtd||0), 0);
+  return Math.max(0, (lote.qtdInicial || 0) - mortAteData);
+}
+
+function fmtMoeda(v) {
+  return 'R$ ' + (v||0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function fmtData(str) {
+  if(!str) return '—';
+  const [y,m,d] = str.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function getThisMonthRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const end = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0];
+  return { start, end };
+}
+
+function getThisWeekRange() {
+  const now = new Date();
+  const day = now.getDay();
+  const start = new Date(now);
+  start.setDate(now.getDate() - day);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0] };
+}
+
+function filterByPeriod(arr, period, dateField = 'data') {
+  const today = new Date().toISOString().split('T')[0];
+  if(period === '7d') {
+    const d = new Date(); d.setDate(d.getDate()-7);
+    return arr.filter(i => i[dateField] >= d.toISOString().split('T')[0]);
+  } else if(period === '30d') {
+    const d = new Date(); d.setDate(d.getDate()-30);
+    return arr.filter(i => i[dateField] >= d.toISOString().split('T')[0]);
+  } else if(period === 'mes') {
+    const {start,end} = getThisMonthRange();
+    return arr.filter(i => i[dateField] >= start && i[dateField] <= end);
+  } else if(period === 'semana') {
+    const {start,end} = getThisWeekRange();
+    return arr.filter(i => i[dateField] >= start && i[dateField] <= end);
+  }
+  return arr;
+}
+
+function calcularIdadeLote() {
+  const lote = getActiveLote();
+  if(!lote || !lote.nascimento) return null;
+  
+  const nascimento = new Date(lote.nascimento);
+  const hoje = new Date();
+  const diffTime = Math.abs(hoje - nascimento);
+  const diffDias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const semanas = Math.floor(diffDias / 7);
+  const dias = diffDias % 7;
+  
+  return { dias: diffDias, semanas, diasResto: dias };
+}
+
+function formatarIdade() {
+  const idade = calcularIdadeLote();
+  if(!idade) return null;
+  return `${idade.semanas} semanas e ${idade.diasResto} dias`;
+}
+
+function atualizarIndicadorIdade() {
+  const lote = getActiveLote();
+  const ageIndicator = document.getElementById('age-indicator');
+  const ageDetail = document.getElementById('age-detail');
+  const ageStats = document.getElementById('age-stats');
+  
+  if(!lote || !lote.nascimento) {
+    ageIndicator.style.display = 'none';
+    return;
+  }
+  
+  ageIndicator.style.display = 'block';
+  const idade = calcularIdadeLote();
+  const aves = getLoteAves();
+  
+  ageDetail.innerHTML = `Nascidas em ${fmtData(lote.nascimento)} — ${idade.semanas} semanas e ${idade.diasResto} dias de vida`;
+  
+  // Indicadores de fase
+  let fase = '';
+  let corFase = '';
+  if(idade.semanas < 18) {
+    fase = '🐣 Fase de Recria';
+    corFase = 'var(--amarelo)';
+  } else if(idade.semanas >= 18 && idade.semanas <= 72) {
+    fase = '🥚 Fase de Produção (pico de postura)';
+    corFase = 'var(--verde)';
+  } else {
+    fase = '📉 Fase Final (queda de produção)';
+    corFase = 'var(--vermelho)';
+  }
+  
+  // Previsão de produção esperada
+  let producaoEsperada = '';
+  if(idade.semanas >= 18 && idade.semanas <= 72) {
+    const pico = idade.semanas <= 30 ? '📈 Atingindo pico' : '📉 Queda gradual';
+    producaoEsperada = `Produção esperada: ${pico} - ${Math.round(85 - (idade.semanas - 30) * 0.5)}% de postura`;
+  }
+  
+  ageStats.innerHTML = `
+    <div class="age-stat">
+      <div class="age-stat-label">Fase</div>
+      <div class="age-stat-value" style="color: ${corFase};">${fase}</div>
+    </div>
+    <div class="age-stat">
+      <div class="age-stat-label">Aves Ativas</div>
+      <div class="age-stat-value">${aves.toLocaleString('pt-BR')}</div>
+    </div>
+    ${producaoEsperada ? `<div class="age-stat">
+      <div class="age-stat-label">Previsão</div>
+      <div class="age-stat-value" style="font-size: 12px;">${producaoEsperada}</div>
+    </div>` : ''}
+  `;
+}
+
 // ===== INIT =====
 window.addEventListener('load', function() {
-  // Try Firebase
   try {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
@@ -1634,7 +1840,6 @@ window.addEventListener('load', function() {
     initDemoMode();
   }
 
-  // Set today's date on inputs
   const today = new Date().toISOString().split('T')[0];
   ['ovo-data','ra-data','med-data','mort-data','custo-data','rel-inicio','rel-fim'].forEach(id => {
     const el = document.getElementById(id);
@@ -1644,22 +1849,50 @@ window.addEventListener('load', function() {
   document.getElementById('ovo-medicacao').addEventListener('change', function() {
     document.getElementById('med-detalhe').style.display = this.value === 'sim' ? 'block' : 'none';
   });
+  
+  // Preview rateio ao digitar
+  document.getElementById('ra-racao-kg').addEventListener('input', previewRateio);
+  document.getElementById('ra-racao-custo').addEventListener('input', previewRateio);
+  document.getElementById('ra-agua-litros').addEventListener('input', previewRateio);
+  document.getElementById('ra-agua-custo').addEventListener('input', previewRateio);
 });
 
+function previewRateio() {
+  const aves = getLoteAves();
+  if(aves <= 0) {
+    document.getElementById('preview-rateio').style.display = 'none';
+    return;
+  }
+  
+  const racaoKg = parseFloat(document.getElementById('ra-racao-kg').value) || 0;
+  const racaoCusto = parseFloat(document.getElementById('ra-racao-custo').value) || 0;
+  const aguaLitros = parseFloat(document.getElementById('ra-agua-litros').value) || 0;
+  const aguaCusto = parseFloat(document.getElementById('ra-agua-custo').value) || 0;
+  
+  if(racaoKg === 0 && aguaLitros === 0) {
+    document.getElementById('preview-rateio').style.display = 'none';
+    return;
+  }
+  
+  document.getElementById('preview-rateio').style.display = 'block';
+  document.getElementById('preview-aves').textContent = aves.toLocaleString('pt-BR');
+  document.getElementById('preview-racao-ave').textContent = (racaoKg / aves).toFixed(3) + ' kg';
+  document.getElementById('preview-custo-racao-ave').textContent = fmtMoeda(racaoCusto / aves);
+  document.getElementById('preview-agua-ave').textContent = (aguaLitros / aves).toFixed(2) + ' L';
+  document.getElementById('preview-custo-agua-ave').textContent = fmtMoeda(aguaCusto / aves);
+}
+
 function initDemoMode() {
-  // Check session
   const session = STORE.session;
   if(session) {
     currentUserData = session;
     currentUser = { uid: session.uid, email: session.email };
     
-    // Seed demo data if empty
     if(STORE.lotes.length === 0) seedDemoData();
     
     hideLoading();
     showApp();
   } else {
-    // Add default admin if no users
     if(STORE.users.length === 0) {
       STORE.users.push({
         uid: 'admin001',
@@ -1682,16 +1915,20 @@ function seedDemoData() {
   const today = new Date();
   const loteId = 'lote001';
   
+  // Data de nascimento (há 20 semanas - idade de produção)
+  const nascimento = new Date();
+  nascimento.setDate(nascimento.getDate() - (20 * 7));
+  
   STORE.lotes.push({
     id: loteId,
     nome: 'Lote A - ISA Brown',
     raca: 'ISA Brown',
-    nascimento: '2024-08-15',
-    postura: '2024-12-01',
+    nascimento: nascimento.toISOString().split('T')[0],
+    postura: (() => { const d = new Date(nascimento); d.setDate(d.getDate() + 126); return d.toISOString().split('T')[0]; })(),
     qtdInicial: 500,
     custo: 4500.00,
     ativo: true,
-    obs: 'Lote principal',
+    obs: 'Lote principal - ISA Brown, alta produtividade',
     criadoPor: 'admin001',
     criadoEm: new Date().toISOString()
   });
@@ -1725,18 +1962,22 @@ function seedDemoData() {
   }
   saveStore('custos');
 
-  // Seed ração
+  // Seed ração com rateio
   for(let i = 0; i < 10; i++) {
     const d = new Date(today);
     d.setDate(d.getDate() - i*3);
+    const racaoKg = 60 + Math.random()*20;
+    const racaoCusto = 180 + Math.random()*30;
+    const avesNaData = 500 - (i * 2);
     STORE.racao.push({
       id: 'racao'+i,
       data: d.toISOString().split('T')[0],
       tipo: 'Ração Postura Fase 1',
-      racaoKg: 60 + Math.random()*20,
-      racaoCusto: 180 + Math.random()*30,
+      racaoKg: racaoKg,
+      racaoCusto: racaoCusto,
       aguaLitros: 150 + Math.random()*50,
       aguaCusto: 8 + Math.random()*4,
+      custoPorAve: (racaoCusto + (8 + Math.random()*4)) / avesNaData,
       loteId, criadoEm: new Date().toISOString()
     });
   }
@@ -1817,6 +2058,7 @@ function showApp() {
   document.getElementById('app-screen').style.display = 'block';
   setupUserUI();
   loadDashboard();
+  atualizarIndicadorIdade();
 }
 
 function setupUserUI() {
@@ -1862,7 +2104,7 @@ function showPage(page) {
   const titles = {
     dashboard: ['Dashboard', 'Visão geral do sistema'],
     ovos: ['Coleta de Ovos', 'Registro diário de produção'],
-    racao: ['Ração & Água', 'Controle de consumo'],
+    racao: ['Ração & Água', 'Controle de consumo com rateio automático'],
     medicacao: ['Medicação', 'Registro de tratamentos'],
     mortalidade: ['Mortalidade', 'Controle de perdas'],
     custos: ['Custos & Despesas', 'Lançamento e controle de gastos'],
@@ -1877,7 +2119,6 @@ function showPage(page) {
     document.getElementById('page-meta').textContent = titles[page][1];
   }
   
-  // Load page data
   const loaders = {
     ovos: loadOvos, racao: loadRacao, medicacao: loadMedicacao,
     mortalidade: loadMortalidade, custos: loadCustos,
@@ -1885,14 +2126,13 @@ function showPage(page) {
     usuarios: loadUsuarios, lote: loadLotes
   };
   if(loaders[page]) loaders[page]();
+  atualizarIndicadorIdade();
 }
 
-// ===== LOADING =====
 function hideLoading() {
   document.getElementById('loading').style.display = 'none';
 }
 
-// ===== NOTIFICATIONS =====
 function notify(msg, type='success') {
   const el = document.getElementById('notification');
   const icon = type === 'success' ? 'fa-check-circle' : 'fa-circle-xmark';
@@ -1903,73 +2143,14 @@ function notify(msg, type='success') {
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-// ===== DATA HELPERS =====
-function getActiveLote() {
-  return STORE.lotes.find(l => l.ativo) || STORE.lotes[0] || null;
-}
-
-function getLoteAves() {
-  const lote = getActiveLote();
-  if(!lote) return 0;
-  const totalMort = STORE.mortalidade.filter(m => m.loteId === lote.id).reduce((s,m) => s + (m.qtd||0), 0);
-  return (lote.qtdInicial || 0) - totalMort;
-}
-
-function fmtMoeda(v) {
-  return 'R$ ' + (v||0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-}
-
-function fmtData(str) {
-  if(!str) return '—';
-  const [y,m,d] = str.split('-');
-  return `${d}/${m}/${y}`;
-}
-
-function getThisMonthRange() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-  const end = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0];
-  return { start, end };
-}
-
-function getThisWeekRange() {
-  const now = new Date();
-  const day = now.getDay();
-  const start = new Date(now);
-  start.setDate(now.getDate() - day);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0] };
-}
-
-function filterByPeriod(arr, period, dateField = 'data') {
-  const today = new Date().toISOString().split('T')[0];
-  if(period === '7d') {
-    const d = new Date(); d.setDate(d.getDate()-7);
-    return arr.filter(i => i[dateField] >= d.toISOString().split('T')[0]);
-  } else if(period === '30d') {
-    const d = new Date(); d.setDate(d.getDate()-30);
-    return arr.filter(i => i[dateField] >= d.toISOString().split('T')[0]);
-  } else if(period === 'mes') {
-    const {start,end} = getThisMonthRange();
-    return arr.filter(i => i[dateField] >= start && i[dateField] <= end);
-  } else if(period === 'semana') {
-    const {start,end} = getThisWeekRange();
-    return arr.filter(i => i[dateField] >= start && i[dateField] <= end);
-  }
-  return arr;
-}
-
 // ===== DASHBOARD =====
 function loadDashboard() {
   const lote = getActiveLote();
   const aves = getLoteAves();
   const {start, end} = getThisMonthRange();
   
-  // Lote badge
   document.getElementById('lote-ativo-badge').textContent = lote ? lote.nome : 'Sem lote ativo';
   
-  // KPIs
   const ovosMes = STORE.ovos.filter(o => o.data >= start && o.data <= end);
   const totalOvosMes = ovosMes.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
   
@@ -1989,7 +2170,6 @@ function loadDashboard() {
   document.getElementById('kpi-custo-ave').textContent = aves > 0 ? fmtMoeda(totalCustos / aves) : '—';
   document.getElementById('kpi-custo-ovo').textContent = totalOvosMes > 0 ? fmtMoeda(totalCustos / totalOvosMes) : '—';
   
-  // Lote info
   if(lote) {
     document.getElementById('r-lote-nome').textContent = lote.nome;
     document.getElementById('r-lote-nasc').textContent = fmtData(lote.nascimento);
@@ -2003,18 +2183,16 @@ function loadDashboard() {
     }
   }
   
-  // Chart
   buildOvosChart();
   
-  // Recent
   const all = [
-    ...STORE.ovos.map(o => ({ data: o.data, tipo: 'Coleta de Ovos', valor: (o.inteiros||0)+(o.trincados||0)+' unid.' })),
+    ...STORE.ovos.map(o => ({ data: o.data, tipo: `Coleta de Ovos (${o.loteId === lote?.id ? lote?.nome : 'Outro lote'})`, valor: (o.inteiros||0)+(o.trincados||0)+' unid.' })),
     ...STORE.custos.map(c => ({ data: c.data, tipo: c.descricao||'Custo', valor: fmtMoeda(c.valor) }))
   ].sort((a,b) => b.data.localeCompare(a.data)).slice(0,8);
   
   const tb = document.getElementById('tb-recentes');
   tb.innerHTML = all.length === 0
-    ? '<tr><td colspan="3" class="empty-state"><i class="fa fa-inbox"></i><p>Nenhum lançamento</p></td></tr>'
+    ? '<tr><td colspan="3" class="empty-state"><i class="fa fa-inbox"></i><p>Nenhum lançamento</p></tr></tr>'
     : all.map(r => `<tr><td>${fmtData(r.data)}</td><td>${r.tipo}</td><td class="font-mono fw-600">${r.valor}</td></tr>`).join('');
 }
 
@@ -2055,12 +2233,15 @@ function setPeriod(ctx, period, btn) {
 
 function loadOvos() {
   const filtered = filterByPeriod([...STORE.ovos].sort((a,b) => b.data.localeCompare(a.data)), ovosPeriod);
+  const lotesMap = STORE.lotes.reduce((map, l) => { map[l.id] = l.nome; return map; }, {});
+  
   const tb = document.getElementById('tb-ovos');
   tb.innerHTML = filtered.length === 0
-    ? '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
+    ? '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
     : filtered.map(o => `
       <tr>
         <td>${fmtData(o.data)}</td>
+        <td><span class="badge badge-verde">${lotesMap[o.loteId] || '—'}</span></td>
         <td>${(o.inteiros||0).toLocaleString('pt-BR')}</td>
         <td>${(o.trincados||0).toLocaleString('pt-BR')}</td>
         <td class="fw-600">${((o.inteiros||0)+(o.trincados||0)).toLocaleString('pt-BR')}</td>
@@ -2080,7 +2261,9 @@ function salvarOvo() {
   if(inteiros + trincados === 0) { notify('Informe a quantidade de ovos', 'error'); return; }
   
   const lote = getActiveLote();
-  const item = { id: 'ovo_'+Date.now(), data, inteiros, trincados, medicacao, medProduto, obs, loteId: lote?.id, criadoEm: new Date().toISOString() };
+  if(!lote) { notify('Não há lote ativo. Cadastre um lote primeiro!', 'error'); return; }
+  
+  const item = { id: 'ovo_'+Date.now(), data, inteiros, trincados, medicacao, medProduto, obs, loteId: lote.id, criadoEm: new Date().toISOString() };
   STORE.ovos.push(item);
   saveStore('ovos');
   
@@ -2089,22 +2272,27 @@ function salvarOvo() {
   document.getElementById('ovo-trincados').value = '';
   document.getElementById('ovo-obs').value = '';
   loadOvos();
+  loadDashboard();
 }
 
-// ===== RAÇÃO =====
+// ===== RAÇÃO COM RATEIO =====
 function loadRacao() {
   const sorted = [...STORE.racao].sort((a,b) => b.data.localeCompare(a.data));
   const tb = document.getElementById('tb-racao');
   tb.innerHTML = sorted.length === 0
-    ? '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
-    : sorted.map(r => `
-      <tr>
-        <td>${fmtData(r.data)}</td>
-        <td class="font-mono">${(r.racaoKg||0).toFixed(1)} kg</td>
-        <td class="font-mono">${fmtMoeda(r.racaoCusto)}</td>
-        <td class="font-mono">${(r.aguaLitros||0).toFixed(1)} L</td>
-        <td class="font-mono">${fmtMoeda(r.aguaCusto)}</td>
-      </tr>`).join('');
+    ? '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
+    : sorted.map(r => {
+        const custoPorAve = r.custoPorAve || ((r.racaoCusto + r.aguaCusto) / (r.avesNaData || getLoteAves()));
+        return `
+          <tr>
+            <td>${fmtData(r.data)}</td>
+            <td class="font-mono">${(r.racaoKg||0).toFixed(1)} kg</td>
+            <td class="font-mono">${fmtMoeda(r.racaoCusto)}</td>
+            <td class="font-mono">${(r.aguaLitros||0).toFixed(1)} L</td>
+            <td class="font-mono">${fmtMoeda(r.aguaCusto)}</td>
+            <td class="font-mono">${fmtMoeda(custoPorAve)}</td>
+          </tr>`;
+      }).join('');
 }
 
 function salvarRacao() {
@@ -2112,29 +2300,74 @@ function salvarRacao() {
   if(!data) { notify('Informe a data', 'error'); return; }
   
   const lote = getActiveLote();
+  if(!lote) { notify('Não há lote ativo. Cadastre um lote primeiro!', 'error'); return; }
+  
+  const racaoKg = parseFloat(document.getElementById('ra-racao-kg').value) || 0;
+  const racaoCusto = parseFloat(document.getElementById('ra-racao-custo').value) || 0;
+  const aguaLitros = parseFloat(document.getElementById('ra-agua-litros').value) || 0;
+  const aguaCusto = parseFloat(document.getElementById('ra-agua-custo').value) || 0;
+  
+  if(racaoKg === 0 && aguaLitros === 0) {
+    notify('Informe pelo menos um consumo (ração ou água)', 'error');
+    return;
+  }
+  
+  // Calcula número de aves na data
+  const avesNaData = getAvesPorData(data);
+  if(avesNaData <= 0) {
+    notify('Não há aves vivas nesta data!', 'error');
+    return;
+  }
+  
+  const custoTotal = racaoCusto + aguaCusto;
+  const custoPorAve = custoTotal / avesNaData;
+  
   const item = {
-    id: 'ra_'+Date.now(), data,
+    id: 'ra_'+Date.now(),
+    data,
     tipo: document.getElementById('ra-tipo').value,
-    racaoKg: parseFloat(document.getElementById('ra-racao-kg').value) || 0,
-    racaoCusto: parseFloat(document.getElementById('ra-racao-custo').value) || 0,
-    aguaLitros: parseFloat(document.getElementById('ra-agua-litros').value) || 0,
-    aguaCusto: parseFloat(document.getElementById('ra-agua-custo').value) || 0,
-    loteId: lote?.id, criadoEm: new Date().toISOString()
+    racaoKg,
+    racaoCusto,
+    aguaLitros,
+    aguaCusto,
+    custoPorAve,
+    avesNaData,
+    loteId: lote.id,
+    criadoEm: new Date().toISOString()
   };
   
   STORE.racao.push(item);
   saveStore('racao');
   
-  // Auto add to custos
-  if(item.racaoCusto > 0) addCustoAuto('racao', item.data, 'Ração - '+item.tipo, item.racaoCusto, 'variavel', lote?.id);
-  if(item.aguaCusto > 0) addCustoAuto('agua', item.data, 'Água', item.aguaCusto, 'variavel', lote?.id);
+  // Adiciona aos custos separadamente para rateio geral
+  if(racaoCusto > 0) addCustoAuto('racao', data, `Ração - ${item.tipo} (${racaoKg}kg)`, racaoCusto, 'variavel', lote.id, custoPorAve * (racaoCusto/custoTotal));
+  if(aguaCusto > 0) addCustoAuto('agua', data, `Água (${aguaLitros}L)`, aguaCusto, 'variavel', lote.id, custoPorAve * (aguaCusto/custoTotal));
   
-  notify('Consumo registrado!');
+  notify(`Consumo registrado! Custo por ave: ${fmtMoeda(custoPorAve)}`);
+  
+  document.getElementById('ra-racao-kg').value = '';
+  document.getElementById('ra-racao-custo').value = '';
+  document.getElementById('ra-agua-litros').value = '';
+  document.getElementById('ra-agua-custo').value = '';
+  document.getElementById('preview-rateio').style.display = 'none';
+  
   loadRacao();
+  loadDashboard();
 }
 
-function addCustoAuto(categoria, data, descricao, valor, tipo, loteId) {
-  STORE.custos.push({ id: 'ca_'+Date.now(), data, categoria, descricao, valor, tipo, fornecedor: 'Auto-lançado', loteId, criadoEm: new Date().toISOString() });
+function addCustoAuto(categoria, data, descricao, valor, tipo, loteId, custoPorAve = null) {
+  STORE.custos.push({ 
+    id: 'ca_'+Date.now(), 
+    data, 
+    categoria, 
+    descricao, 
+    valor, 
+    tipo, 
+    fornecedor: 'Auto-lançado (consumo)', 
+    loteId, 
+    custoPorAve,
+    criadoEm: new Date().toISOString() 
+  });
   saveStore('custos');
 }
 
@@ -2143,14 +2376,19 @@ function loadMedicacao() {
   const sorted = [...STORE.medicacao].sort((a,b) => b.data.localeCompare(a.data));
   const tb = document.getElementById('tb-medicacao');
   tb.innerHTML = sorted.length === 0
-    ? '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
-    : sorted.map(m => `
-      <tr>
-        <td>${fmtData(m.data)}</td>
-        <td class="fw-600">${m.produto||'—'}</td>
-        <td><span class="badge badge-verde">${m.finalidade||'—'}</span></td>
-        <td class="font-mono">${fmtMoeda(m.custo)}</td>
-      </tr>`).join('');
+    ? '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
+    : sorted.map(m => {
+        const avesTratadas = m.aves || getLoteAves();
+        const custoPorAve = m.custo / avesTratadas;
+        return `
+          <tr>
+            <td>${fmtData(m.data)}</td>
+            <td class="fw-600">${m.produto||'—'}</td>
+            <td><span class="badge badge-verde">${m.finalidade||'—'}</span></td>
+            <td class="font-mono">${fmtMoeda(m.custo)}</td>
+            <td class="font-mono">${fmtMoeda(custoPorAve)}</td>
+          </tr>`;
+      }).join('');
 }
 
 function salvarMedicacao() {
@@ -2160,20 +2398,23 @@ function salvarMedicacao() {
   
   const lote = getActiveLote();
   const custo = parseFloat(document.getElementById('med-custo').value) || 0;
+  const avesTratadas = parseInt(document.getElementById('med-aves').value) || getLoteAves();
+  
   const item = {
     id: 'med_'+Date.now(), data, produto,
     finalidade: document.getElementById('med-finalidade').value,
     dose: document.getElementById('med-dose').value,
     custo,
-    aves: parseInt(document.getElementById('med-aves').value) || 0,
+    aves: avesTratadas,
     obs: document.getElementById('med-obs').value,
-    loteId: lote?.id, criadoEm: new Date().toISOString()
+    loteId: lote?.id, 
+    criadoEm: new Date().toISOString()
   };
   
   STORE.medicacao.push(item);
   saveStore('medicacao');
   
-  if(custo > 0) addCustoAuto('medicamento', data, 'Medicação: '+produto, custo, 'variavel', lote?.id);
+  if(custo > 0) addCustoAuto('medicamento', data, `Medicação: ${produto}`, custo, 'variavel', lote?.id);
   
   notify('Medicação registrada!');
   document.getElementById('med-produto').value = '';
@@ -2189,7 +2430,7 @@ function loadMortalidade() {
   const sorted = [...STORE.mortalidade].sort((a,b) => b.data.localeCompare(a.data));
   const tb = document.getElementById('tb-mortalidade');
   tb.innerHTML = sorted.length === 0
-    ? '<tr><td colspan="3" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
+    ? '<tr><td colspan="3" class="text-muted"style="text-align:center;padding:20px">Nenhum registro</td></tr>'
     : sorted.map(m => `<tr><td>${fmtData(m.data)}</td><td class="fw-600 text-vermelho">${m.qtd}</td><td>${m.causa||'—'}</td></tr>`).join('');
   
   const total = sorted.reduce((s,m) => s + (m.qtd||0), 0);
@@ -2219,6 +2460,8 @@ function salvarMortalidade() {
   document.getElementById('mort-qtd').value = '';
   document.getElementById('mort-obs').value = '';
   loadMortalidade();
+  loadDashboard();
+  atualizarIndicadorIdade();
 }
 
 // ===== CUSTOS =====
@@ -2242,7 +2485,6 @@ function loadCustos() {
         <td><button class="btn-icon" onclick="deletarCusto('${c.id}')"><i class="fa fa-trash"></i></button></td>
       </tr>`).join('');
   
-  // Resumo por categoria
   const byCat = {};
   mesCustos.forEach(c => {
     byCat[c.categoria] = (byCat[c.categoria] || 0) + (c.valor||0);
@@ -2299,7 +2541,6 @@ function setRateioPeriod(period, btn) {
 function loadRateio() {
   const custos = filterByPeriod([...STORE.custos], rateioPeriod);
   const ovos = filterByPeriod([...STORE.ovos], rateioPeriod);
-  const mort = filterByPeriod([...STORE.mortalidade], rateioPeriod);
   
   const totalCustos = custos.reduce((s,c) => s + (c.valor||0), 0);
   const totalOvos = ovos.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
@@ -2317,7 +2558,6 @@ function loadRateio() {
   document.getElementById('r-custo-ovo').textContent = fmtMoeda(custoOvo);
   document.getElementById('r-produtividade').textContent = produtividade + '%';
   
-  // Detalhe por categoria
   const byCat = {};
   custos.forEach(c => {
     byCat[c.categoria] = (byCat[c.categoria] || 0) + (c.valor||0);
@@ -2347,7 +2587,6 @@ function loadRateio() {
   
   tb.innerHTML = rows.join('') || '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">Sem dados</td></tr>';
   
-  // Pizza chart
   buildPizzaChart(byCat, totalCustos);
 }
 
@@ -2397,13 +2636,16 @@ function gerarRelatorio() {
   
   const totalCustos = custos.reduce((s,c) => s + (c.valor||0), 0);
   const totalOvos = ovos.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
-  const aves = getLoteAves();
+  const avesInicial = lote ? lote.qtdInicial : 0;
   const totalMort = mort.reduce((s,m) => s + (m.qtd||0), 0);
+  const avesFinais = avesInicial - totalMort;
   const totalRacaoKg = racao.reduce((s,r) => s + (r.racaoKg||0), 0);
   const totalAguaL = racao.reduce((s,r) => s + (r.aguaLitros||0), 0);
   
   const byCat = {};
   custos.forEach(c => { byCat[c.categoria] = (byCat[c.categoria]||0) + (c.valor||0); });
+  
+  const idade = calcularIdadeLote();
   
   const html = `
     <div style="font-family:'Sora',sans-serif;">
@@ -2414,15 +2656,20 @@ function gerarRelatorio() {
         <div style="font-size:11px;color:var(--cinza-4);margin-top:2px">Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
       </div>
 
+      <div style="background:var(--verde-bg);padding:12px;border-radius:12px;margin-bottom:20px;text-align:center">
+        <strong>${lote?.nome || 'Lote'}</strong> — Raça: ${lote?.raca || '—'} | 
+        Nascimento: ${fmtData(lote?.nascimento)} | Idade: ${idade ? `${idade.semanas} semanas` : '—'}
+      </div>
+
       <h3 style="font-size:14px;font-weight:700;color:var(--verde-escuro);margin-bottom:12px">📊 RESUMO EXECUTIVO</h3>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
         ${[
-          ['Aves Ativas', aves.toLocaleString('pt-BR')],
+          ['Aves (início)', avesInicial.toLocaleString('pt-BR')],
+          ['Aves (fim)', avesFinais.toLocaleString('pt-BR')],
           ['Ovos Produzidos', totalOvos.toLocaleString('pt-BR')],
           ['Total de Custos', fmtMoeda(totalCustos)],
-          ['Custo por Ave', aves>0?fmtMoeda(totalCustos/aves):'—'],
-          ['Custo por Ovo', totalOvos>0?fmtMoeda(totalCustos/totalOvos):'—'],
-          ['Mortalidade', totalMort+' aves']
+          ['Custo por Ave', avesFinais>0?fmtMoeda(totalCustos/avesFinais):'—'],
+          ['Custo por Ovo', totalOvos>0?fmtMoeda(totalCustos/totalOvos):'—']
         ].map(([l,v]) => `<div style="background:var(--cinza-1);padding:12px;border-radius:8px">
           <div style="font-size:11px;color:var(--cinza-4);margin-bottom:4px">${l}</div>
           <div style="font-size:16px;font-weight:700">${v}</div>
@@ -2437,25 +2684,25 @@ function gerarRelatorio() {
           <th style="padding:8px 12px;text-align:right">%</th>
           <th style="padding:8px 12px;text-align:right">Custo/Ave</th>
           <th style="padding:8px 12px;text-align:right">Custo/Ovo</th>
-        </tr></thead>
+         </tr></thead>
         <tbody>
           ${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,val],i) => `
             <tr style="background:${i%2?'var(--cinza-1)':'white'}">
               <td style="padding:8px 12px">${cat}</td>
               <td style="padding:8px 12px;text-align:right;font-family:monospace">${fmtMoeda(val)}</td>
               <td style="padding:8px 12px;text-align:right">${totalCustos>0?((val/totalCustos)*100).toFixed(1):0}%</td>
-              <td style="padding:8px 12px;text-align:right;font-family:monospace">${aves>0?fmtMoeda(val/aves):'—'}</td>
+              <td style="padding:8px 12px;text-align:right;font-family:monospace">${avesFinais>0?fmtMoeda(val/avesFinais):'—'}</td>
               <td style="padding:8px 12px;text-align:right;font-family:monospace">${totalOvos>0?fmtMoeda(val/totalOvos):'—'}</td>
-            </tr>`).join('')}
+             </tr>`).join('')}
           <tr style="background:var(--verde-bg);font-weight:700">
             <td style="padding:8px 12px">TOTAL GERAL</td>
             <td style="padding:8px 12px;text-align:right;font-family:monospace">${fmtMoeda(totalCustos)}</td>
             <td style="padding:8px 12px;text-align:right">100%</td>
-            <td style="padding:8px 12px;text-align:right;font-family:monospace">${aves>0?fmtMoeda(totalCustos/aves):'—'}</td>
+            <td style="padding:8px 12px;text-align:right;font-family:monospace">${avesFinais>0?fmtMoeda(totalCustos/avesFinais):'—'}</td>
             <td style="padding:8px 12px;text-align:right;font-family:monospace">${totalOvos>0?fmtMoeda(totalCustos/totalOvos):'—'}</td>
-          </tr>
+           </tr>
         </tbody>
-      </table>
+       </table>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
         <div>
@@ -2463,16 +2710,16 @@ function gerarRelatorio() {
           <table style="width:100%;border-collapse:collapse;font-size:12px">
             <tr><td style="padding:6px;color:var(--cinza-5)">Total produzido</td><td style="text-align:right;font-weight:600">${totalOvos.toLocaleString('pt-BR')} unid.</td></tr>
             <tr style="background:var(--cinza-1)"><td style="padding:6px;color:var(--cinza-5)">Ovos/dia (média)</td><td style="text-align:right;font-weight:600">${(totalOvos/Math.max(1, (new Date(fim)-new Date(inicio))/(24*3600*1000)+1)).toFixed(0)}</td></tr>
-            <tr><td style="padding:6px;color:var(--cinza-5)">Ovos/ave/dia</td><td style="text-align:right;font-weight:600">${aves>0?(totalOvos/aves/Math.max(1,(new Date(fim)-new Date(inicio))/(24*3600*1000)+1)*100).toFixed(1)+'%':'—'}</td></tr>
-          </table>
+            <tr><td style="padding:6px;color:var(--cinza-5)">Ovos/ave/dia</td><td style="text-align:right;font-weight:600">${avesFinais>0?(totalOvos/avesFinais/Math.max(1,(new Date(fim)-new Date(inicio))/(24*3600*1000)+1)*100).toFixed(1)+'%':'—'}</td></tr>
+           </table>
         </div>
         <div>
           <h3 style="font-size:14px;font-weight:700;color:var(--verde-escuro);margin-bottom:10px">🌾 CONSUMO</h3>
           <table style="width:100%;border-collapse:collapse;font-size:12px">
             <tr><td style="padding:6px;color:var(--cinza-5)">Ração total</td><td style="text-align:right;font-weight:600">${totalRacaoKg.toFixed(1)} kg</td></tr>
-            <tr style="background:var(--cinza-1)"><td style="padding:6px;color:var(--cinza-5)">Ração/ave</td><td style="text-align:right;font-weight:600">${aves>0?(totalRacaoKg/aves).toFixed(2)+' kg':'—'}</td></tr>
+            <tr style="background:var(--cinza-1)"><td style="padding:6px;color:var(--cinza-5)">Ração/ave</td><td style="text-align:right;font-weight:600">${avesFinais>0?(totalRacaoKg/avesFinais).toFixed(2)+' kg':'—'}</td></tr>
             <tr><td style="padding:6px;color:var(--cinza-5)">Água total</td><td style="text-align:right;font-weight:600">${totalAguaL.toFixed(1)} L</td></tr>
-          </table>
+           </table>
         </div>
       </div>
 
@@ -2514,7 +2761,6 @@ async function cadastrarUsuario() {
   if(!nome || !email || !senha) { notify('Preencha todos os campos', 'error'); return; }
   if(senha.length < 6) { notify('Senha mínima: 6 caracteres', 'error'); return; }
   
-  // Gerente só pode criar colaboradores
   if(funcao === 'gerente' && novaFuncao !== 'colaborador') {
     notify('Gerentes só podem cadastrar colaboradores.', 'error'); return;
   }
@@ -2540,27 +2786,43 @@ async function cadastrarUsuario() {
 // ===== LOTES =====
 function loadLotes() {
   const tb = document.getElementById('tb-lotes');
-  tb.innerHTML = STORE.lotes.map(l => `
-    <tr>
-      <td class="fw-600">${l.nome}</td>
-      <td>${l.raca||'—'}</td>
-      <td>${fmtData(l.nascimento)}</td>
-      <td class="font-mono">${(l.qtdInicial||0).toLocaleString('pt-BR')}</td>
-      <td>
-        <button onclick="toggleLote('${l.id}')" class="badge ${l.ativo?'badge-verde':'badge-amarelo'}" style="border:none;cursor:pointer">
-          ${l.ativo ? 'Ativo' : 'Inativo'}
-        </button>
-      </td>
-    </tr>`).join('') || '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">Nenhum lote</td></tr>';
+  tb.innerHTML = STORE.lotes.map(l => {
+    const idade = l.nascimento ? calcularIdadeLoteData(l.nascimento) : null;
+    return `
+      <tr>
+        <td class="fw-600">${l.nome}</td>
+        <td>${l.raca||'—'}</td>
+        <td>${fmtData(l.nascimento)}</td>
+        <td>${idade ? `${idade.semanas}s` : '—'}</td>
+        <td class="font-mono">${(l.qtdInicial||0).toLocaleString('pt-BR')}</td>
+        <td>
+          <button onclick="toggleLote('${l.id}')" class="badge ${l.ativo?'badge-verde':'badge-amarelo'}" style="border:none;cursor:pointer">
+            ${l.ativo ? 'Ativo' : 'Inativo'}
+          </button>
+         </td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px">Nenhum lote</td></tr>';
+}
+
+function calcularIdadeLoteData(dataNascimento) {
+  if(!dataNascimento) return null;
+  const nascimento = new Date(dataNascimento);
+  const hoje = new Date();
+  const diffTime = Math.abs(hoje - nascimento);
+  const diffDias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const semanas = Math.floor(diffDias / 7);
+  return { dias: diffDias, semanas };
 }
 
 function toggleLote(id) {
   STORE.lotes.forEach(l => l.ativo = false);
   const lote = STORE.lotes.find(l => l.id === id);
-  if(lote) lote.ativo = !lote.ativo;
+  if(lote) lote.ativo = true;
   saveStore('lotes');
   loadLotes();
-  notify('Lote atualizado.');
+  loadDashboard();
+  atualizarIndicadorIdade();
+  notify('Lote ativo alterado com sucesso!');
 }
 
 function salvarLote() {
@@ -2595,7 +2857,6 @@ function salvarLote() {
   loadLotes();
 }
 
-// Allow Enter to login
 document.addEventListener('keydown', function(e) {
   if(e.key === 'Enter' && document.getElementById('auth-screen').style.display !== 'none') {
     doLogin();
