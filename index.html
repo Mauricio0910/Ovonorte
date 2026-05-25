@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OVONORTE — Sistema de Gestão Avícola</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --verde: #1a7a4a;
+  --verde-claro: #22a35f;
+  --verde-escuro: #0d5232;
+  --verde-bg: #e8f5ee;
+  --amarelo: #f0b429;
+  --amarelo-claro: #fcefc7;
+  --vermelho: #c0392b;
+  --vermelho-claro: #fde8e6;
+  --cinza-1: #f8f9fa;
+  --cinza-2: #e9ecef;
+  --cinza-3: #dee2e6;
+  --cinza-4: #adb5bd;
+  --cinza-5: #6c757d;
+  --cinza-6: #343a40;
+  --branco: #ffffff;
+  --sombra: 0 2px 8px rgba(0,0,0,0.08);
+  --radius: 12px;
+  --sidebar: 260px;
+}
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--cinza-1);
+  color: var(--cinza-6);
+  font-size: 14px;
+}
+
+/* Tela de Login */
+#auth-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--verde-escuro), var(--verde));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  background: var(--branco);
+  border-radius: 24px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-logo .logo-icon {
+  width: 70px;
+  height: 70px;
+  background: var(--verde-bg);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 32px;
+}
+
+.auth-logo h1 {
+  font-size: 24px;
+  color: var(--verde-escuro);
+}
+
+.auth-error {
+  background: var(--vermelho-claro);
+  color: var(--vermelho);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: none;
+  font-size: 13px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cinza-5);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--cinza-3);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: var(--verde);
+}
+
+.btn {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--verde);
+  color: white;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-primary:hover {
+  background: var(--verde-claro);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--cinza-2);
+  color: var(--cinza-6);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* App Screen */
+#app-screen {
+  display: none;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--sidebar);
+  background: var(--verde-escuro);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-logo .s-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.sidebar-logo h2 {
+  color: white;
+  font-size: 18px;
+}
+
+.sidebar-logo small {
+  color: rgba(255,255,255,0.5);
+  font-size: 10px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+}
+
+.nav-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  padding: 8px 8px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  margin-bottom: 2px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.nav-item.active {
+  background: rgba(255,255,255,0.15);
+  color: white;
+}
+
+.nav-item.active i {
+  color: var(--amarelo);
+}
+
+.sidebar-user {
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--amarelo);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--verde-escuro);
+}
+
+.user-name {
+  color: white;
+  font-weight: 600;
+}
+
+.user-role {
+  color: rgba(255,255,255,0.6);
+  font-size: 11px;
+}
+
+.btn-logout {
+  width: 100%;
+  padding: 8px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: var(--sidebar);
+  min-height: 100vh;
+}
+
+.topbar {
+  background: white;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--cinza-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar h1 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.topbar-meta {
+  font-size: 12px;
+  color: var(--cinza-4);
+  margin-top: 4px;
+}
+
+.content-area {
+  padding: 24px 28px;
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  margin-bottom: 24px;
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cinza-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* KPIs */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--sombra);
+  border-left: 4px solid var(--verde);
+  position: relative;
+}
+
+.kpi-card.amarelo { border-left-color: var(--amarelo); }
+.kpi-card.vermelho { border-left-color: var(--vermelho); }
+.kpi-card.azul { border-left-color: #3498db; }
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cinza-4);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.kpi-sub {
+  font-size: 11px;
+  color: var(--cinza-4);
+  margin-top: 4px;
+}
+
+.kpi-icon {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  font-size: 32px;
+  opacity: 0.1;
+}
+
+/* Tabelas */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cinza-4);
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--cinza-2);
+}
+
+.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--cinza-2);
+}
+
+/* Grids */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-verde {
+  background: var(--verde-bg);
+  color: var(--verde-escuro);
+}
+
+/* Período */
+.period-select {
+  display: flex;
+  gap: 8px;
+}
+
+.period-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--cinza-3);
+  border-radius: 20px;
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.period-btn.active {
+  background: var(--verde);
+  border-color: var(--verde);
+  color: white;
+}
+
+/* Rateio */
+.rateio-box {
+  background: var(--verde-bg);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.rateio-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Alertas */
+.alert {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-info {
+  background: var(--verde-bg);
+  color: var(--verde-escuro);
+}
+
+/* Idade */
+.age-indicator {
+  background: var(--verde-bg);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  display: none;
+}
+
+.age-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.age-stat {
+  background: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.age-stat-label {
+  font-size: 11px;
+  color: var(--cinza-4);
+}
+
+.age-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--verde-escuro);
+}
+
+/* Utilitários */
+.text-muted { color: var(--cinza-4); }
+.fw-600 { font-weight: 600; }
+.font-mono { font-family: monospace; }
+.mt-4 { margin-top: 16px; }
+.mb-4 { margin-bottom: 16px; }
+.flex { display: flex; }
+.gap-2 { gap: 8px; }
+.justify-between { justify-content: space-between; }
+.items-center { align-items: center; }
+
+/* Loading */
+#loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--cinza-3);
+  border-top-color: var(--verde);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Notification */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 8px;
+  padding: 12px 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10000;
+  transform: translateX(120%);
+  transition: transform 0.3s;
+}
+
+.notification.show {
+  transform: translateX(0);
+}
+
+/* Page sections */
+.page-section {
+  display: none;
+}
+
+.page-section.active {
+  display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  .main-content {
+    margin-left: 0;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div>Carregando sistema...</div>
+</div>
+
+<div id="notification" class="notification">
+  <i class="fa fa-check-circle"></i>
+  <span id="notification-text"></span>
+</div>
+
+<!-- Tela de Login -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">🥚</div>
+      <h1>OVONORTE</h1>
+      <p>Sistema de Gestão Avícola</p>
+    </div>
+    <div id="auth-error" class="auth-error"></div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="login-email" placeholder="seu@email.com">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="login-password" placeholder="••••••">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">
+      <i class="fa fa-sign-in-alt"></i> Entrar
+    </button>
+    <p style="text-align: center; margin-top: 20px; font-size: 12px; color: var(--cinza-4);">
+      Demo: diretor@ovonorte.com.br / 123456
+    </p>
+  </div>
+</div>
+
+<!-- App Principal -->
+<div id="app-screen">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="s-icon">🥚</div>
+        <div>
+          <h2>OVONORTE</h2>
+          <small>Gestão Avícola</small>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Principal</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <i class="fa fa-tachometer-alt"></i> Dashboard
+      </div>
+      
+      <div class="nav-section-title">Lançamentos</div>
+      <div class="nav-item" onclick="showPage('ovos')">
+        <i class="fa fa-egg"></i> Coleta de Ovos
+      </div>
+      <div class="nav-item" onclick="showPage('racao')">
+        <i class="fa fa-wheat-alt"></i> Ração e Água
+      </div>
+      <div class="nav-item" onclick="showPage('medicacao')">
+        <i class="fa fa-syringe"></i> Medicação
+      </div>
+      <div class="nav-item" onclick="showPage('mortalidade')">
+        <i class="fa fa-skull"></i> Mortalidade
+      </div>
+      <div class="nav-item" onclick="showPage('custos')">
+        <i class="fa fa-dollar-sign"></i> Custos
+      </div>
+      
+      <div class="nav-section-title">Análises</div>
+      <div class="nav-item" onclick="showPage('rateio')">
+        <i class="fa fa-chart-line"></i> Rateio
+      </div>
+      <div class="nav-item" onclick="showPage('relatorios')">
+        <i class="fa fa-file-alt"></i> Relatórios
+      </div>
+      
+      <div class="nav-section-title" id="nav-admin-title" style="display:none">Admin</div>
+      <div class="nav-item" id="nav-usuarios" style="display:none" onclick="showPage('usuarios')">
+        <i class="fa fa-users"></i> Usuários
+      </div>
+      <div class="nav-item" id="nav-lotes" style="display:none" onclick="showPage('lotes')">
+        <i class="fa fa-boxes"></i> Lotes
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">AD</div>
+        <div>
+          <div class="user-name" id="user-name">Usuário</div>
+          <div class="user-role" id="user-role">Carregando...</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">
+        <i class="fa fa-sign-out-alt"></i> Sair
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div>
+        <h1 id="page-title">Dashboard</h1>
+        <div class="topbar-meta" id="page-meta">Visão geral</div>
+      </div>
+      <div class="flex gap-2">
+        <span class="badge badge-verde" id="lote-badge">Sem lote</span>
+      </div>
+    </div>
+    <div class="content-area" id="content-area"></div>
+  </main>
+</div>
+
+<script>
+// ============================================
+// CONFIGURAÇÃO DO BANCO DE DADOS (localStorage)
+// ============================================
+
+let currentUser = null;
+let currentUserData = null;
+
+// Estrutura de dados
+let db = {
+  users: [],
+  lotes: [],
+  ovos: [],
+  racoes: [],
+  medicacoes: [],
+  mortalidades: [],
+  custos: []
+};
+
+// Carregar dados do localStorage
+function loadDatabase() {
+  const data = localStorage.getItem('ovonorte_db');
+  if (data) {
+    const parsed = JSON.parse(data);
+    db.users = parsed.users || [];
+    db.lotes = parsed.lotes || [];
+    db.ovos = parsed.ovos || [];
+    db.racoes = parsed.racoes || [];
+    db.medicacoes = parsed.medicacoes || [];
+    db.mortalidades = parsed.mortalidades || [];
+    db.custos = parsed.custos || [];
+  }
+  
+  // Inicializar com dados padrão se vazio
+  if (db.users.length === 0) {
+    db.users.push({
+      id: '1',
+      nome: 'Administrador',
+      email: 'diretor@ovonorte.com.br',
+      senha: '123456',
+      funcao: 'diretor',
+      ativo: true
+    });
+    db.users.push({
+      id: '2',
+      nome: 'Gerente',
+      email: 'gerente@ovonorte.com.br',
+      senha: '123456',
+      funcao: 'gerente',
+      ativo: true
+    });
+    db.users.push({
+      id: '3',
+      nome: 'Colaborador',
+      email: 'colaborador@ovonorte.com.br',
+      senha: '123456',
+      funcao: 'colaborador',
+      ativo: true
+    });
+    
+    // Adicionar seu email
+    db.users.push({
+      id: '4',
+      nome: 'Maurício Santana',
+      email: 'mauricio.santana7@gmail.com',
+      senha: 'admin123',
+      funcao: 'diretor',
+      ativo: true
+    });
+  }
+  
+  if (db.lotes.length === 0) {
+    const hoje = new Date();
+    const nascimento = new Date();
+    nascimento.setDate(hoje.getDate() - (20 * 7)); // 20 semanas atrás
+    
+    db.lotes.push({
+      id: 'lote1',
+      nome: 'Lote A - ISA Brown',
+      raca: 'ISA Brown',
+      nascimento: nascimento.toISOString().split('T')[0],
+      postura: new Date(nascimento.setDate(nascimento.getDate() + 126)).toISOString().split('T')[0],
+      qtdInicial: 500,
+      ativo: true,
+      criadoEm: new Date().toISOString()
+    });
+  }
+  
+  if (db.ovos.length === 0) {
+    for (let i = 0; i < 30; i++) {
+      const data = new Date();
+      data.setDate(data.getDate() - i);
+      db.ovos.push({
+        id: `ovo${i}`,
+        data: data.toISOString().split('T')[0],
+        inteiros: 400 + Math.floor(Math.random() * 80),
+        trincados: Math.floor(Math.random() * 15),
+        loteId: 'lote1',
+        criadoEm: new Date().toISOString()
+      });
+    }
+  }
+  
+  saveDatabase();
+}
+
+function saveDatabase() {
+  localStorage.setItem('ovonorte_db', JSON.stringify(db));
+}
+
+// Helpers
+function getActiveLote() {
+  return db.lotes.find(l => l.ativo) || db.lotes[0];
+}
+
+function getAvesAtivas() {
+  const lote = getActiveLote();
+  if (!lote) return 0;
+  const mortes = db.mortalidades.filter(m => m.loteId === lote.id).reduce((sum, m) => sum + m.qtd, 0);
+  return Math.max(0, lote.qtdInicial - mortes);
+}
+
+function fmtMoeda(valor) {
+  return 'R$ ' + valor.toFixed(2).replace('.', ',');
+}
+
+function fmtData(data) {
+  if (!data) return '—';
+  const [y, m, d] = data.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function showNotification(msg, type = 'success') {
+  const notif = document.getElementById('notification');
+  const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+  notif.querySelector('i').className = `fa ${icon}`;
+  notif.querySelector('span').textContent = msg;
+  notif.classList.add('show');
+  setTimeout(() => notif.classList.remove('show'), 3000);
+}
+
+// Autenticação
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-password').value;
+  
+  if (!email || !senha) {
+    showAuthError('Preencha e-mail e senha');
+    return;
+  }
+  
+  const user = db.users.find(u => u.email === email && u.senha === senha && u.ativo);
+  
+  if (user) {
+    currentUser = user;
+    currentUserData = user;
+    localStorage.setItem('ovonorte_session', JSON.stringify({ uid: user.id, email: user.email, nome: user.nome, funcao: user.funcao }));
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    document.getElementById('loading').style.display = 'none';
+    setupUI();
+    showPage('dashboard');
+    loadDashboard();
+  } else {
+    showAuthError('E-mail ou senha incorretos');
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function doLogout() {
+  localStorage.removeItem('ovonorte_session');
+  currentUser = null;
+  currentUserData = null;
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+function setupUI() {
+  if (!currentUserData) return;
+  
+  const initials = (currentUserData.nome || 'U').substring(0, 2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent = currentUserData.nome;
+  
+  const roleNames = { diretor: 'Diretor', gerente: 'Gerente', colaborador: 'Colaborador' };
+  document.getElementById('user-role').textContent = roleNames[currentUserData.funcao] || currentUserData.funcao;
+  
+  const isAdmin = currentUserData.funcao === 'diretor' || currentUserData.funcao === 'gerente';
+  document.getElementById('nav-admin-title').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('nav-usuarios').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('nav-lotes').style.display = isAdmin ? 'block' : 'none';
+}
+
+// Navegação
+function showPage(page) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  
+  const titles = {
+    dashboard: 'Dashboard',
+    ovos: 'Coleta de Ovos',
+    racao: 'Ração e Água',
+    medicacao: 'Medicação',
+    mortalidade: 'Mortalidade',
+    custos: 'Custos e Despesas',
+    rateio: 'Rateio por Ave/Ovo',
+    relatorios: 'Relatórios',
+    usuarios: 'Usuários',
+    lotes: 'Lotes'
+  };
+  
+  document.getElementById('page-title').textContent = titles[page] || 'Sistema';
+  renderPage(page);
+}
+
+function renderPage(page) {
+  const container = document.getElementById('content-area');
+  
+  const pages = {
+    dashboard: renderDashboard,
+    ovos: renderOvos,
+    racao: renderRacao,
+    medicacao: renderMedicacao,
+    mortalidade: renderMortalidade,
+    custos: renderCustos,
+    rateio: renderRateio,
+    relatorios: renderRelatorios,
+    usuarios: renderUsuarios,
+    lotes: renderLotes
+  };
+  
+  if (pages[page]) {
+    container.innerHTML = pages[page]();
+    if (page === 'dashboard') loadDashboardData();
+  }
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard() {
+  return `
+    <div class="kpi-grid" id="kpi-container"></div>
+    <div class="age-indicator" id="age-indicator">
+      <div class="flex items-center gap-2">
+        <i class="fa fa-calendar"></i>
+        <strong>Idade do Lote</strong>
+        <span id="age-text"></span>
+      </div>
+      <div class="age-stats" id="age-stats"></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📊 Produção Semanal</span>
+        </div>
+        <div class="card-body">
+          <div id="chart-container" style="height: 200px; display: flex; align-items: flex-end; gap: 8px; justify-content: center;"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📋 Últimos Lançamentos</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <table class="data-table" id="recent-table">
+            <thead><tr><th>Data</th><th>Tipo</th><th>Valor</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 Informações do Lote</span>
+      </div>
+      <div class="card-body">
+        <div class="grid-2" id="lote-info"></div>
+      </div>
+    </div>
+  `;
+}
+
+function loadDashboardData() {
+  const lote = getActiveLote();
+  const aves = getAvesAtivas();
+  const hoje = new Date().toISOString().split('T')[0];
+  const mesInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+  
+  const ovosHoje = db.ovos.filter(o => o.data === hoje).reduce((s, o) => s + o.inteiros + o.trincados, 0);
+  const ovosMes = db.ovos.filter(o => o.data >= mesInicio).reduce((s, o) => s + o.inteiros + o.trincados, 0);
+  const custosMes = db.custos.filter(c => c.data >= mesInicio).reduce((s, c) => s + c.valor, 0);
+  const mortesMes = db.mortalidades.filter(m => m.data >= mesInicio).reduce((s, m) => s + m.qtd, 0);
+  
+  document.getElementById('kpi-container').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Galinhas Ativas</div><div class="kpi-value">${aves}</div><div class="kpi-sub">${lote?.nome || '—'}</div><i class="fa fa-feather kpi-icon"></i></div>
+    <div class="kpi-card amarelo"><div class="kpi-label">Ovos Hoje</div><div class="kpi-value">${ovosHoje}</div><div class="kpi-sub">Coleta do dia</div><i class="fa fa-egg kpi-icon"></i></div>
+    <div class="kpi-card"><div class="kpi-label">Ovos no Mês</div><div class="kpi-value">${ovosMes}</div><div class="kpi-sub">Mês atual</div><i class="fa fa-calendar kpi-icon"></i></div>
+    <div class="kpi-card azul"><div class="kpi-label">Custo por Ave</div><div class="kpi-value">${aves > 0 ? fmtMoeda(custosMes / aves) : 'R$ 0'}</div><div class="kpi-sub">Mês atual</div><i class="fa fa-calculator kpi-icon"></i></div>
+    <div class="kpi-card azul"><div class="kpi-label">Custo por Ovo</div><div class="kpi-value">${ovosMes > 0 ? fmtMoeda(custosMes / ovosMes) : 'R$ 0'}</div><div class="kpi-sub">Mês atual</div><i class="fa fa-coins kpi-icon"></i></div>
+    <div class="kpi-card vermelho"><div class="kpi-label">Mortalidade</div><div class="kpi-value">${mortesMes}</div><div class="kpi-sub">Aves no mês</div><i class="fa fa-chart-line kpi-icon"></i></div>
+  `;
+  
+  // Idade do lote
+  if (lote && lote.nascimento) {
+    const nasc = new Date(lote.nascimento);
+    const hojeDate = new Date();
+    const dias = Math.floor((hojeDate - nasc) / (1000 * 60 * 60 * 24));
+    const semanas = Math.floor(dias / 7);
+    document.getElementById('age-indicator').style.display = 'block';
+    document.getElementById('age-text').textContent = `${semanas} semanas (${dias} dias)`;
+    
+    let fase = '';
+    if (semanas < 18) fase = '🐣 Fase de Recria';
+    else if (semanas <= 72) fase = '🥚 Fase de Produção';
+    else fase = '📉 Fase Final';
+    
+    document.getElementById('age-stats').innerHTML = `
+      <div class="age-stat"><div class="age-stat-label">Fase</div><div class="age-stat-value">${fase}</div></div>
+      <div class="age-stat"><div class="age-stat-label">Aves</div><div class="age-stat-value">${aves}</div></div>
+    `;
+  }
+  
+  // Gráfico semanal
+  const semanas = [];
+  for (let i = 6; i >= 0; i--) {
+    const data = new Date();
+    data.setDate(data.getDate() - (i * 7));
+    const inicio = new Date(data);
+    inicio.setDate(data.getDate() - data.getDay());
+    const fim = new Date(inicio);
+    fim.setDate(inicio.getDate() + 6);
+    const total = db.ovos.filter(o => o.data >= inicio.toISOString().split('T')[0] && o.data <= fim.toISOString().split('T')[0])
+      .reduce((s, o) => s + o.inteiros + o.trincados, 0);
+    semanas.push(total);
+  }
+  
+  const maxValor = Math.max(...semanas, 1);
+  document.getElementById('chart-container').innerHTML = semanas.map(val => {
+    const altura = Math.max(30, (val / maxValor) * 160);
+    return `<div style="flex:1; text-align:center;"><div style="height:${altura}px; background:var(--verde); border-radius:6px 6px 0 0; width:100%;"></div><div style="font-size:11px; margin-top:5px;">${val}</div></div>`;
+  }).join('');
+  
+  // Recentes
+  const recentes = [
+    ...db.ovos.slice(-5).map(o => ({ data: o.data, tipo: 'Coleta de Ovos', valor: `${o.inteiros + o.trincados} ovos` })),
+    ...db.custos.slice(-5).map(c => ({ data: c.data, tipo: c.descricao, valor: fmtMoeda(c.valor) }))
+  ].sort((a, b) => b.data.localeCompare(a.data)).slice(0, 8);
+  
+  const recentTable = document.querySelector('#recent-table tbody');
+  if (recentTable) {
+    recentTable.innerHTML = recentes.map(r => `
+      <tr><td>${fmtData(r.data)}</td><td>${r.tipo}</td><td class="fw-600">${r.valor}</td></tr>
+    `).join('');
+  }
+  
+  // Info lote
+  document.getElementById('lote-info').innerHTML = `
+    <div><div class="text-muted">Nome</div><div class="fw-600">${lote?.nome || '—'}</div></div>
+    <div><div class="text-muted">Raça</div><div class="fw-600">${lote?.raca || '—'}</div></div>
+    <div><div class="text-muted">Nascimento</div><div class="fw-600">${fmtData(lote?.nascimento)}</div></div>
+    <div><div class="text-muted">Início Postura</div><div class="fw-600">${fmtData(lote?.postura)}</div></div>
+    <div><div class="text-muted">Qtd. Inicial</div><div class="fw-600">${lote?.qtdInicial || 0}</div></div>
+    <div><div class="text-muted">Aves Ativas</div><div class="fw-600">${aves}</div></div>
+  `;
+  
+  document.getElementById('lote-badge').textContent = lote?.nome || 'Sem lote';
+}
+
+// ===================== OVOS =====================
+function renderOvos() {
+  const hoje = new Date().toISOString().split('T')[0];
+  return `
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Registrar Coleta</span></div>
+        <div class="card-body">
+          <div class="form-group"><label>Data</label><input type="date" id="ovo-data" value="${hoje}"></div>
+          <div class="form-grid">
+            <div class="form-group"><label>Ovos Inteiros</label><input type="number" id="ovo-inteiros" min="0" value="0"></div>
+            <div class="form-group"><label>Ovos Trincados</label><input type="number" id="ovo-trincados" min="0" value="0"></div>
+          </div>
+          <div class="form-group"><label>Observações</label><textarea id="ovo-obs" rows="2"></textarea></div>
+          <button class="btn btn-primary" onclick="salvarOvo()"><i class="fa fa-save"></i> Registrar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Histórico</span>
+          <div class="period-select" id="period-select-ovos"></div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="data-table" id="ovos-table">
+            <thead><tr><th>Data</th><th>Inteiros</th><th>Trincados</th><th>Total</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function salvarOvo() {
+  const data = document.getElementById('ovo-data').value;
+  const inteiros = parseInt(document.getElementById('ovo-inteiros').value) || 0;
+  const trincados = parseInt(document.getElementById('ovo-trincados').value) || 0;
+  const lote = getActiveLote();
+  
+  if (!lote) {
+    showNotification('Cadastre um lote primeiro!', 'error');
+    return;
+  }
+  if (inteiros + trincados === 0) {
+    showNotification('Informe a quantidade de ovos', 'error');
+    return;
+  }
+  
+  db.ovos.push({
+    id: Date.now().toString(),
+    data,
+    inteiros,
+    trincados,
+    loteId: lote.id,
+    criadoEm: new Date().toISOString()
+  });
+  saveDatabase();
+  
+  showNotification('Coleta registrada!');
+  document.getElementById('ovo-inteiros').value = '0';
+  document.getElementById('ovo-trincados').value = '0';
+  renderPage('ovos');
+}
+
+// ===================== RAÇÃO =====================
+function renderRacao() {
+  const hoje = new Date().toISOString().split('T')[0];
+  const aves = getAvesAtivas();
+  return `
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Lançar Consumo</span></div>
+        <div class="card-body">
+          <div class="alert alert-info"><i class="fa fa-info-circle"></i> O custo será rateado entre ${aves} aves ativas</div>
+          <div class="form-group"><label>Data</label><input type="date" id="ra-data" value="${hoje}"></div>
+          <div class="form-group"><label>Tipo de Ração</label><select id="ra-tipo"><option>Postura Fase 1</option><option>Postura Fase 2</option><option>Crescimento</option></select></div>
+          <div class="form-grid">
+            <div class="form-group"><label>Racão (kg)</label><input type="number" id="ra-kg" step="0.1" value="0"></div>
+            <div class="form-group"><label>Custo Ração (R$)</label><input type="number" id="ra-custo" step="0.01" value="0"></div>
+            <div class="form-group"><label>Água (L)</label><input type="number" id="agua-l" step="0.1" value="0"></div>
+            <div class="form-group"><label>Custo Água (R$)</label><input type="number" id="agua-custo" step="0.01" value="0"></div>
+          </div>
+          <button class="btn btn-primary" onclick="salvarRacao()"><i class="fa fa-save"></i> Registrar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Histórico</span></div>
+        <div class="card-body" style="padding:0;">
+          <table class="data-table" id="racao-table">
+            <thead><tr><th>Data</th><th>Ração (kg)</th><th>Custo</th><th>Água (L)</th><th>Custo</th><th>Custo/Ave</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function salvarRacao() {
+  const data = document.getElementById('ra-data').value;
+  const racaoKg = parseFloat(document.getElementById('ra-kg').value) || 0;
+  const racaoCusto = parseFloat(document.getElementById('ra-custo').value) || 0;
+  const aguaL = parseFloat(document.getElementById('agua-l').value) || 0;
+  const aguaCusto = parseFloat(document.getElementById('agua-custo').value) || 0;
+  const lote = getActiveLote();
+  const aves = getAvesAtivas();
+  
+  if (!lote) {
+    showNotification('Cadastre um lote primeiro!', 'error');
+    return;
+  }
+  if (racaoKg === 0 && aguaL === 0) {
+    showNotification('Informe pelo menos um consumo', 'error');
+    return;
+  }
+  
+  const custoTotal = racaoCusto + aguaCusto;
+  const custoPorAve = aves > 0 ? custoTotal / aves : 0;
+  
+  db.racoes.push({
+    id: Date.now().toString(),
+    data,
+    racaoKg,
+    racaoCusto,
+    aguaL,
+    aguaCusto,
+    custoPorAve,
+    loteId: lote.id
+  });
+  
+  if (racaoCusto > 0) {
+    db.custos.push({
+      id: Date.now().toString() + '_r',
+      data,
+      categoria: 'racao',
+      descricao: `Ração (${racaoKg}kg)`,
+      valor: racaoCusto,
+      loteId: lote.id
+    });
+  }
+  if (aguaCusto > 0) {
+    db.custos.push({
+      id: Date.now().toString() + '_a',
+      data,
+      categoria: 'agua',
+      descricao: `Água (${aguaL}L)`,
+      valor: aguaCusto,
+      loteId: lote.id
+    });
+  }
+  
+  saveDatabase();
+  showNotification(`Consumo registrado! Custo por ave: ${fmtMoeda(custoPorAve)}`);
+  renderPage('racao');
+}
+
+// ===================== MORTALIDADE =====================
+function renderMortalidade() {
+  const hoje = new Date().toISOString().split('T')[0];
+  return `
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Registrar Mortalidade</span></div>
+        <div class="card-body">
+          <div class="form-group"><label>Data</label><input type="date" id="mort-data" value="${hoje}"></div>
+          <div class="form-group"><label>Quantidade</label><input type="number" id="mort-qtd" min="1"></div>
+          <div class="form-group"><label>Causa</label><select id="mort-causa"><option>Doença</option><option>Estresse</option><option>Acidente</option><option>Outro</option></select></div>
+          <button class="btn btn-primary" onclick="salvarMortalidade()"><i class="fa fa-save"></i> Registrar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Histórico</span></div>
+        <div class="card-body" style="padding:0;">
+          <table class="data-table" id="mort-table">
+            <thead><tr><th>Data</th><th>Qtd</th><th>Causa</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function salvarMortalidade() {
+  const data = document.getElementById('mort-data').value;
+  const qtd = parseInt(document.getElementById('mort-qtd').value) || 0;
+  const causa = document.getElementById('mort-causa').value;
+  const lote = getActiveLote();
+  
+  if (!lote) {
+    showNotification('Cadastre um lote primeiro!', 'error');
+    return;
+  }
+  if (qtd <= 0) {
+    showNotification('Informe a quantidade', 'error');
+    return;
+  }
+  
+  db.mortalidades.push({
+    id: Date.now().toString(),
+    data,
+    qtd,
+    causa,
+    loteId: lote.id
+  });
+  saveDatabase();
+  showNotification('Mortalidade registrada');
+  renderPage('mortalidade');
+}
+
+// ===================== CUSTOS =====================
+function renderCustos() {
+  const hoje = new Date().toISOString().split('T')[0];
+  return `
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Lançar Custo</span></div>
+        <div class="card-body">
+          <div class="form-group"><label>Data</label><input type="date" id="custo-data" value="${hoje}"></div>
+          <div class="form-group"><label>Categoria</label><select id="custo-cat"><option>racao</option><option>agua</option><option>medicamento</option><option>energia</option><option>mao_de_obra</option><option>outros</option></select></div>
+          <div class="form-group"><label>Descrição</label><input type="text" id="custo-desc"></div>
+          <div class="form-group"><label>Valor (R$)</label><input type="number" id="custo-valor" step="0.01"></div>
+          <button class="btn btn-primary" onclick="salvarCusto()"><i class="fa fa-save"></i> Registrar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Últimos Custos</span></div>
+        <div class="card-body" style="padding:0;">
+          <table class="data-table" id="custos-table">
+            <thead><tr><th>Data</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function salvarCusto() {
+  const data = document.getElementById('custo-data').value;
+  const categoria = document.getElementById('custo-cat').value;
+  const descricao = document.getElementById('custo-desc').value;
+  const valor = parseFloat(document.getElementById('custo-valor').value) || 0;
+  const lote = getActiveLote();
+  
+  if (!descricao || valor <= 0) {
+    showNotification('Preencha todos os campos', 'error');
+    return;
+  }
+  
+  db.custos.push({
+    id: Date.now().toString(),
+    data,
+    categoria,
+    descricao,
+    valor,
+    loteId: lote?.id
+  });
+  saveDatabase();
+  showNotification('Custo registrado');
+  renderPage('custos');
+}
+
+// ===================== RATEIO =====================
+function renderRateio() {
+  const custos = db.custos;
+  const ovos = db.ovos;
+  const totalCustos = custos.reduce((s, c) => s + c.valor, 0);
+  const totalOvos = ovos.reduce((s, o) => s + o.inteiros + o.trincados, 0);
+  const aves = getAvesAtivas();
+  
+  const custoAve = aves > 0 ? totalCustos / aves : 0;
+  const custoOvo = totalOvos > 0 ? totalCustos / totalOvos : 0;
+  
+  const byCat = {};
+  custos.forEach(c => { byCat[c.categoria] = (byCat[c.categoria] || 0) + c.valor; });
+  
+  return `
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Total Custos</div><div class="kpi-value">${fmtMoeda(totalCustos)}</div></div>
+      <div class="kpi-card amarelo"><div class="kpi-label">Aves</div><div class="kpi-value">${aves}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Ovos</div><div class="kpi-value">${totalOvos}</div></div>
+      <div class="kpi-card azul"><div class="kpi-label">Custo por Ave</div><div class="kpi-value">${fmtMoeda(custoAve)}</div></div>
+      <div class="kpi-card azul"><div class="kpi-label">Custo por Ovo</div><div class="kpi-value">${fmtMoeda(custoOvo)}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Rateio por Categoria</span></div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table">
+          <thead><tr><th>Categoria</th><th>Valor</th><th>%</th><th>Custo/Ave</th><th>Custo/Ovo</th></tr></thead>
+          <tbody>
+            ${Object.entries(byCat).map(([cat, val]) => {
+              const pct = totalCustos > 0 ? (val / totalCustos * 100).toFixed(1) : 0;
+              return `<tr>
+                <td>${cat}</td><td class="font-mono">${fmtMoeda(val)}</td><td>${pct}%</td>
+                <td class="font-mono">${fmtMoeda(aves > 0 ? val / aves : 0)}</td>
+                <td class="font-mono">${fmtMoeda(totalOvos > 0 ? val / totalOvos : 0)}</td>
+              </tr>`;
+            }).join('')}
+            <tr style="background:var(--verde-bg); font-weight:bold;">
+              <td>TOTAL</td><td class="font-mono">${fmtMoeda(totalCustos)}</td><td>100%</td>
+              <td class="font-mono">${fmtMoeda(custoAve)}</td><td class="font-mono">${fmtMoeda(custoOvo)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ===================== RELATÓRIOS =====================
+function renderRelatorios() {
+  return `
+    <div class="card">
+      <div class="card-header"><span class="card-title">Gerar Relatório</span></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group"><label>Início</label><input type="date" id="rel-inicio"></div>
+          <div class="form-group"><label>Fim</label><input type="date" id="rel-fim"></div>
+        </div>
+        <button class="btn btn-primary" onclick="gerarRelatorio()"><i class="fa fa-file-alt"></i> Gerar</button>
+        <button class="btn btn-secondary" onclick="window.print()"><i class="fa fa-print"></i> Imprimir</button>
+      </div>
+    </div>
+    <div id="relatorio-content" style="display:none;" class="card"></div>
+  `;
+}
+
+function gerarRelatorio() {
+  const inicio = document.getElementById('rel-inicio').value;
+  const fim = document.getElementById('rel-fim').value;
+  const lote = getActiveLote();
+  const custosPeriodo = db.custos.filter(c => c.data >= inicio && c.data <= fim);
+  const ovosPeriodo = db.ovos.filter(o => o.data >= inicio && o.data <= fim);
+  const totalCustos = custosPeriodo.reduce((s, c) => s + c.valor, 0);
+  const totalOvos = ovosPeriodo.reduce((s, o) => s + o.inteiros + o.trincados, 0);
+  const aves = getAvesAtivas();
+  
+  const html = `
+    <div class="card-body" style="text-align:center;">
+      <h2>OVONORTE - Relatório</h2>
+      <p>Período: ${fmtData(inicio)} a ${fmtData(fim)}</p>
+      <p>Lote: ${lote?.nome || '—'} | Raça: ${lote?.raca || '—'}</p>
+      <hr>
+      <div class="grid-2" style="margin-top:20px;">
+        <div><strong>Total de Custos</strong><br>${fmtMoeda(totalCustos)}</div>
+        <div><strong>Total de Ovos</strong><br>${totalOvos}</div>
+        <div><strong>Custo por Ave</strong><br>${fmtMoeda(aves > 0 ? totalCustos / aves : 0)}</div>
+        <div><strong>Custo por Ovo</strong><br>${fmtMoeda(totalOvos > 0 ? totalCustos / totalOvos : 0)}</div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('relatorio-content').style.display = 'block';
+  document.getElementById('relatorio-content').innerHTML = html;
+}
+
+// ===================== USUÁRIOS =====================
+function renderUsuarios() {
+  return `
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Cadastrar Usuário</span></div>
+        <div class="card-body">
+          <div class="form-group"><label>Nome</label><input type="text" id="user-nome"></div>
+          <div class="form-group"><label>E-mail</label><input type="email" id="user-email"></div>
+          <div class="form-group"><label>Senha</label><input type="password" id="user-senha"></div>
+          <div class="form-group"><label>Função</label><select id="user-funcao"><option>colaborador</option><option>gerente</option><option>diretor</option></select></div>
+          <button class="btn btn-primary" onclick="salvarUsuario()"><i class="fa fa-save"></i> Cadastrar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Usuários</span></div>
+        <div class="card-body" style="padding:0;">
+          <table class="data-table" id="users-table">
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Função</th></tr></thead>
+            <tbody>
+              ${db.users.map(u => `<tr><td>${u.nome}</td><td>${u.email}</td><td>${u.funcao}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function salvarUsuario() {
+  const nome = document.getElementById('user-nome').value;
+  const email = document.getElementById('user-email').value;
+  const senha = document.getElementById('user-senha').value;
+  const funcao = document.getElementById('user-funcao').value;
+  
+  if (!nome || !email || !senha) {
+    showNotification('Preencha todos os campos', 'error');
+    return;
+  }
+  
+  db.users.push({
+    id: Date.now().toString(),
+    nome,
+    email,
+    senha,
+    funcao,
+    ativo: true
+  });
+  saveDatabase();
+  showNotification('Usuário cadastrado');
+  renderPage('usuarios');
+}
+
+// ===================== LOTES =====================
+function renderLotes() {
+  return `
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Cadastrar Lote</span></div>
+        <div class="card-body">
+          <div class="form-group"><label>Nome</label><input type="text" id="lote-nome"></div>
+          <div class="form-group"><label>Raça</label><input type="text" id="lote-raca"></div>
+          <div class="form-group"><label>Data Nascimento</label><input type="date" id="lote-nasc"></div>
+          <div class="form-group"><label>Início Postura</label><input type="date" id="lote-postura"></div>
+          <div class="form-group"><label>Qtd. Inicial</label><input type="number" id="lote-qtd"></div>
+          <button class="btn btn-primary" onclick="salvarLote()"><i class="fa fa-save"></i> Cadastrar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Lotes</span></div>
+        <div class="card-body" style="padding:0;">
+          <table class="data-table" id="lotes-table">
+            <thead><tr><th>Nome</th><th>Raça</th><th>Nascimento</th><th>Qtd</th><th>Status</th></tr></thead>
+            <tbody>
+              ${db.lotes.map(l => `
+                <tr>
+                  <td>${l.nome}</td>
+                  <td>${l.raca || '—'}</td>
+                  <td>${fmtData(l.nascimento)}</td>
+                  <td>${l.qtdInicial}</td>
+                  <td><button class="btn-sm btn-secondary" onclick="setLoteAtivo('${l.id}')">${l.ativo ? '✓ Ativo' : 'Ativar'}</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function salvarLote() {
+  const nome = document.getElementById('lote-nome').value;
+  const raca = document.getElementById('lote-raca').value;
+  const nascimento = document.getElementById('lote-nasc').value;
+  const postura = document.getElementById('lote-postura').value;
+  const qtd = parseInt(document.getElementById('lote-qtd').value) || 0;
+  
+  if (!nome || !nascimento || qtd <= 0) {
+    showNotification('Preencha todos os campos', 'error');
+    return;
+  }
+  
+  db.lotes.forEach(l => l.ativo = false);
+  db.lotes.push({
+    id: Date.now().toString(),
+    nome,
+    raca,
+    nascimento,
+    postura,
+    qtdInicial: qtd,
+    ativo: true,
+    criadoEm: new Date().toISOString()
+  });
+  saveDatabase();
+  showNotification('Lote cadastrado');
+  renderPage('lotes');
+}
+
+function setLoteAtivo(id) {
+  db.lotes.forEach(l => l.ativo = (l.id === id));
+  saveDatabase();
+  renderPage('lotes');
+  showNotification('Lote alterado');
+}
+
+// ===================== INICIALIZAÇÃO =====================
+function init() {
+  loadDatabase();
+  
+  // Verificar sessão
+  const session = localStorage.getItem('ovonorte_session');
+  if (session) {
+    const data = JSON.parse(session);
+    const user = db.users.find(u => u.id === data.uid);
+    if (user && user.ativo) {
+      currentUser = user;
+      currentUserData = user;
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      setupUI();
+      showPage('dashboard');
+      loadDashboard();
+      document.getElementById('loading').style.display = 'none';
+      return;
+    }
+  }
+  
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('loading').style.display = 'none';
+}
+
+// Inicializar
+init();
+</script>
+</body>
+</html>
