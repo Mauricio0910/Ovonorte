@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OVONORTE — Sistema de Gestão Avícola</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<style>
+:root {
+  --verde: #1a7a4a;
+  --verde-claro: #22a35f;
+  --verde-escuro: #0d5232;
+  --verde-bg: #e8f5ee;
+  --amarelo: #f0b429;
+  --amarelo-claro: #fcefc7;
+  --vermelho: #c0392b;
+  --vermelho-claro: #fde8e6;
+  --cinza-1: #f7f8fa;
+  --cinza-2: #eef0f4;
+  --cinza-3: #d2d6de;
+  --cinza-4: #9aa3b2;
+  --cinza-5: #5a6278;
+  --cinza-6: #2d3348;
+  --branco: #ffffff;
+  --texto: #1a1f2e;
+  --sombra: 0 2px 12px rgba(0,0,0,0.08);
+  --sombra-md: 0 4px 24px rgba(0,0,0,0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --sidebar: 240px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--cinza-1);
+  color: var(--texto);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ===== AUTH SCREEN ===== */
+#auth-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--verde) 50%, #2d7a3a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+#auth-screen::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.03);
+  top: -200px; right: -200px;
+}
+#auth-screen::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  bottom: -150px; left: -100px;
+}
+
+.auth-card {
+  background: var(--branco);
+  border-radius: 20px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-logo .logo-icon {
+  width: 72px; height: 72px;
+  background: var(--verde-bg);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 32px;
+}
+
+.auth-logo h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--verde-escuro);
+  letter-spacing: -0.5px;
+}
+
+.auth-logo p {
+  font-size: 13px;
+  color: var(--cinza-4);
+  margin-top: 4px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cinza-5);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--cinza-3);
+  border-radius: var(--radius-sm);
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  color: var(--texto);
+  background: var(--branco);
+  transition: all 0.2s;
+  outline: none;
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--verde-claro);
+  box-shadow: 0 0 0 3px rgba(34,163,95,0.12);
+}
+
+.btn {
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: var(--verde);
+  color: var(--branco);
+  width: 100%;
+  justify-content: center;
+  padding: 14px;
+  font-size: 15px;
+}
+.btn-primary:hover { background: var(--verde-claro); transform: translateY(-1px); }
+
+.btn-secondary {
+  background: var(--cinza-2);
+  color: var(--cinza-5);
+}
+.btn-secondary:hover { background: var(--cinza-3); }
+
+.btn-danger {
+  background: var(--vermelho-claro);
+  color: var(--vermelho);
+}
+.btn-danger:hover { background: #f5c6c2; }
+
+.btn-sm { padding: 7px 14px; font-size: 13px; }
+
+.auth-error {
+  background: var(--vermelho-claro);
+  color: var(--vermelho);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+/* ===== MAIN APP ===== */
+#app-screen { display: none; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--sidebar);
+  background: var(--verde-escuro);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-logo .s-icon {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--amarelo);
+}
+
+.sidebar-logo h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--branco);
+  letter-spacing: 1px;
+}
+
+.sidebar-logo small {
+  display: block;
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 400;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 10px;
+  overflow-y: auto;
+}
+
+.nav-section {
+  margin-bottom: 8px;
+}
+
+.nav-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 10px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 2px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nav-item i { font-size: 15px; min-width: 18px; }
+.nav-item:hover { background: rgba(255,255,255,0.08); color: var(--branco); }
+.nav-item.active { background: rgba(255,255,255,0.15); color: var(--branco); }
+.nav-item.active i { color: var(--amarelo); }
+
+.sidebar-user {
+  padding: 14px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.user-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--amarelo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--verde-escuro);
+  flex-shrink: 0;
+}
+
+.user-name { font-size: 13px; font-weight: 600; color: var(--branco); }
+.user-role { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+.btn-logout {
+  width: 100%;
+  padding: 8px;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  font-family: 'Sora', sans-serif;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.12); color: var(--branco); }
+
+/* Main content */
+.main-content {
+  margin-left: var(--sidebar);
+  min-height: 100vh;
+  padding: 0;
+}
+
+.topbar {
+  background: var(--branco);
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--cinza-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.topbar-meta {
+  font-size: 12px;
+  color: var(--cinza-4);
+  margin-top: 1px;
+}
+
+.content-area {
+  padding: 24px 28px;
+}
+
+/* Cards */
+.card {
+  background: var(--branco);
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--cinza-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.card-body { padding: 22px; }
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--branco);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--sombra);
+  border-left: 4px solid var(--verde);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card.amarelo { border-left-color: var(--amarelo); }
+.kpi-card.vermelho { border-left-color: var(--vermelho); }
+.kpi-card.azul { border-left-color: #2980b9; }
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cinza-4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--texto);
+  font-family: 'DM Mono', monospace;
+}
+
+.kpi-sub {
+  font-size: 11px;
+  color: var(--cinza-4);
+  margin-top: 4px;
+}
+
+.kpi-icon {
+  position: absolute;
+  right: 16px; top: 16px;
+  font-size: 28px;
+  opacity: 0.1;
+}
+
+/* Badge */
+.badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-verde { background: var(--verde-bg); color: var(--verde-escuro); }
+.badge-amarelo { background: var(--amarelo-claro); color: #8a6200; }
+.badge-vermelho { background: var(--vermelho-claro); color: var(--vermelho); }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--cinza-2);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cinza-5);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab-btn.active {
+  background: var(--branco);
+  color: var(--verde);
+  font-weight: 600;
+  box-shadow: var(--sombra);
+}
+
+/* Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cinza-4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--cinza-2);
+}
+
+.data-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cinza-2);
+  font-size: 13px;
+  color: var(--texto);
+}
+
+.data-table tr:hover td { background: var(--cinza-1); }
+.data-table tr:last-child td { border-bottom: none; }
+
+/* Form grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* Alert */
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-success { background: var(--verde-bg); color: var(--verde-escuro); }
+.alert-error { background: var(--vermelho-claro); color: var(--vermelho); }
+.alert-warning { background: var(--amarelo-claro); color: #7a5800; }
+
+/* Chart placeholder */
+.chart-area {
+  background: var(--cinza-1);
+  border-radius: var(--radius-sm);
+  height: 200px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.chart-bar {
+  flex: 1;
+  max-width: 40px;
+  border-radius: 6px 6px 0 0;
+  background: var(--verde);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  position: relative;
+}
+.chart-bar:hover { opacity: 1; }
+.chart-bar.amarelo { background: var(--amarelo); }
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  display: none;
+}
+
+.modal {
+  background: var(--branco);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 560px;
+  box-shadow: var(--sombra-md);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--cinza-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-body { padding: 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--cinza-2);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-icon {
+  width: 32px; height: 32px;
+  border: none;
+  background: var(--cinza-2);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cinza-5);
+  transition: all 0.15s;
+}
+.btn-icon:hover { background: var(--cinza-3); }
+
+/* Tag input period */
+.period-select {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.period-btn {
+  padding: 6px 14px;
+  border: 1.5px solid var(--cinza-3);
+  border-radius: 20px;
+  font-family: 'Sora', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--branco);
+  color: var(--cinza-5);
+  transition: all 0.15s;
+}
+.period-btn.active { border-color: var(--verde); color: var(--verde); background: var(--verde-bg); }
+
+/* Spinner */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: var(--branco);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 768px) {
+  :root { --sidebar: 0px; }
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; }
+}
+
+/* Print / Report */
+@media print {
+  .sidebar, .topbar, .no-print { display: none !important; }
+  .main-content { margin-left: 0; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+}
+
+/* Page sections */
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+/* Utility */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.mt-4 { margin-top: 16px; }
+.mt-6 { margin-top: 24px; }
+.mb-4 { margin-bottom: 16px; }
+.text-sm { font-size: 12px; color: var(--cinza-4); }
+.text-muted { color: var(--cinza-4); }
+.text-verde { color: var(--verde); }
+.text-vermelho { color: var(--vermelho); }
+.font-mono { font-family: 'DM Mono', monospace; }
+.fw-600 { font-weight: 600; }
+.divider { border: none; border-top: 1px solid var(--cinza-2); margin: 20px 0; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+.full-width { grid-column: 1 / -1; }
+
+.total-row td { font-weight: 700; background: var(--cinza-1); border-top: 2px solid var(--cinza-3) !important; }
+
+.input-prefix {
+  display: flex;
+  align-items: center;
+}
+.input-prefix span {
+  background: var(--cinza-2);
+  padding: 12px 12px;
+  border: 1.5px solid var(--cinza-3);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  font-size: 13px;
+  color: var(--cinza-4);
+  font-weight: 500;
+}
+.input-prefix input {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
+}
+
+.rateio-box {
+  background: var(--verde-bg);
+  border: 1px solid rgba(26,122,74,0.2);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  margin-top: 16px;
+}
+.rateio-box h4 { font-size: 13px; font-weight: 700; color: var(--verde-escuro); margin-bottom: 10px; }
+.rateio-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(26,122,74,0.1);
+  font-size: 13px;
+}
+.rateio-row:last-child { border-bottom: none; }
+.rateio-label { color: var(--cinza-5); }
+.rateio-value { font-weight: 600; color: var(--verde-escuro); font-family: 'DM Mono', monospace; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.section-title { font-size: 16px; font-weight: 700; color: var(--texto); }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--cinza-4);
+}
+.empty-state i { font-size: 36px; margin-bottom: 12px; display: block; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.85);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--cinza-5);
+}
+.loading-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--cinza-2);
+  border-top-color: var(--verde);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.notification {
+  position: fixed;
+  top: 20px; right: 20px;
+  background: var(--branco);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  box-shadow: var(--sombra-md);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  transform: translateX(120%);
+  transition: transform 0.3s ease;
+  min-width: 260px;
+  max-width: 360px;
+}
+.notification.show { transform: translateX(0); }
+.notification.success { border-left: 4px solid var(--verde); }
+.notification.error { border-left: 4px solid var(--vermelho); }
+.notification i { font-size: 16px; }
+.notification.success i { color: var(--verde); }
+.notification.error i { color: var(--vermelho); }
+
+/* Age indicator */
+.age-indicator {
+  background: linear-gradient(135deg, var(--verde-bg), #d4efe3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.age-stats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.age-stat {
+  background: white;
+  border-radius: 10px;
+  padding: 8px 16px;
+  text-align: center;
+}
+.age-stat-label { font-size: 11px; color: var(--cinza-4); }
+.age-stat-value { font-size: 18px; font-weight: 700; color: var(--verde-escuro); }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="loading-spinner"></div>
+  <span>Carregando sistema...</span>
+</div>
+
+<!-- Notification -->
+<div class="notification" id="notification">
+  <i class="fa fa-check-circle"></i>
+  <span id="notification-text"></span>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">🥚</div>
+      <h1>OVONORTE</h1>
+      <p>Sistema de Gestão Avícola</p>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="login-email" placeholder="seu@email.com">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="login-password" placeholder="••••••••">
+    </div>
+    <button class="btn btn-primary" id="btn-login" onclick="doLogin()">
+      <i class="fa fa-sign-in-alt"></i> Entrar no Sistema
+    </button>
+    <p style="text-align:center; margin-top:16px; font-size:12px; color:var(--cinza-4);">
+      Versão Demo — Dados armazenados no Firebase
+    </p>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="s-icon">🥚</div>
+        <div>
+          <h2>OVONORTE</h2>
+          <small>Gestão Avícola</small>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Principal</div>
+        <div class="nav-item active" onclick="showPage('dashboard')">
+          <i class="fa fa-th-large"></i> Dashboard
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Lançamentos</div>
+        <div class="nav-item" onclick="showPage('ovos')">
+          <i class="fa fa-egg"></i> Coleta de Ovos
+        </div>
+        <div class="nav-item" onclick="showPage('racao')">
+          <i class="fa fa-wheat-awn"></i> Ração & Água
+        </div>
+        <div class="nav-item" onclick="showPage('medicacao')">
+          <i class="fa fa-syringe"></i> Medicação
+        </div>
+        <div class="nav-item" onclick="showPage('mortalidade')">
+          <i class="fa fa-chart-line-down"></i> Mortalidade
+        </div>
+        <div class="nav-item" onclick="showPage('custos')">
+          <i class="fa fa-receipt"></i> Custos & Despesas
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Análises</div>
+        <div class="nav-item" onclick="showPage('rateio')">
+          <i class="fa fa-calculator"></i> Rateio por Ave/Ovo
+        </div>
+        <div class="nav-item" onclick="showPage('relatorios')">
+          <i class="fa fa-file-invoice"></i> Relatórios
+        </div>
+      </div>
+      <div class="nav-section" id="nav-admin" style="display:none">
+        <div class="nav-section-title">Administração</div>
+        <div class="nav-item" onclick="showPage('usuarios')">
+          <i class="fa fa-users"></i> Usuários
+        </div>
+        <div class="nav-item" onclick="showPage('lote')">
+          <i class="fa fa-boxes"></i> Lotes/Linhagens
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">--</div>
+        <div>
+          <div class="user-name" id="user-name">Usuário</div>
+          <div class="user-role" id="user-role">Carregando...</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">
+        <i class="fa fa-sign-out-alt"></i> Sair do sistema
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div>
+        <h1 id="page-title">Dashboard</h1>
+        <div class="topbar-meta" id="page-meta">Visão geral do sistema</div>
+      </div>
+      <div class="flex gap-2">
+        <span class="badge badge-verde" id="lote-ativo-badge">Carregando lote...</span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-area">
+
+      <!-- ===== DASHBOARD ===== -->
+      <section class="page-section active" id="page-dashboard">
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Galinhas Ativas</div>
+            <div class="kpi-value font-mono" id="kpi-aves">—</div>
+            <div class="kpi-sub">Total no lote atual</div>
+            <i class="fa fa-feather kpi-icon"></i>
+          </div>
+          <div class="kpi-card amarelo">
+            <div class="kpi-label">Ovos Hoje</div>
+            <div class="kpi-value font-mono" id="kpi-ovos-hoje">—</div>
+            <div class="kpi-sub">Coleta mais recente</div>
+            <i class="fa fa-egg kpi-icon"></i>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Ovos no Mês</div>
+            <div class="kpi-value font-mono" id="kpi-ovos-mes">—</div>
+            <div class="kpi-sub">Mês atual</div>
+            <i class="fa fa-calendar kpi-icon"></i>
+          </div>
+          <div class="kpi-card azul">
+            <div class="kpi-label">Custo/Ave</div>
+            <div class="kpi-value font-mono" id="kpi-custo-ave">—</div>
+            <div class="kpi-sub">Rateio mensal</div>
+            <i class="fa fa-calculator kpi-icon"></i>
+          </div>
+          <div class="kpi-card azul">
+            <div class="kpi-label">Custo/Ovo</div>
+            <div class="kpi-value font-mono" id="kpi-custo-ovo">—</div>
+            <div class="kpi-sub">Rateio mensal</div>
+            <i class="fa fa-coins kpi-icon"></i>
+          </div>
+          <div class="kpi-card vermelho">
+            <div class="kpi-label">Mortalidade Mês</div>
+            <div class="kpi-value font-mono" id="kpi-mort">—</div>
+            <div class="kpi-sub">Aves mortas</div>
+            <i class="fa fa-chart-pie kpi-icon"></i>
+          </div>
+        </div>
+
+        <!-- Idade das Aves -->
+        <div class="age-indicator" id="age-indicator" style="display:none;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa fa-calendar-week" style="font-size: 24px; color: var(--verde);"></i>
+            <div>
+              <strong>Idade do Lote</strong>
+              <div id="age-detail" style="font-size: 13px; color: var(--cinza-5);">Carregando...</div>
+            </div>
+          </div>
+          <div class="age-stats" id="age-stats"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fa fa-chart-bar text-verde"></i> Ovos por Semana</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-area" id="chart-ovos"></div>
+              <div style="display:flex; gap:12px; margin-top:8px; font-size:11px; color:var(--cinza-4); justify-content:center;" id="chart-labels"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fa fa-list-check text-verde"></i> Últimos Lançamentos</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <table class="data-table">
+                <thead><tr><th>Data</th><th>Tipo</th><th>Valor</th></tr></thead>
+                <tbody id="tb-recentes"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fa fa-circle-info text-verde"></i> Resumo do Lote Atual</span>
+            </div>
+            <div class="card-body">
+              <div class="grid-3" id="lote-resumo">
+                <div>
+                  <div class="text-sm">Nome do Lote</div>
+                  <div class="fw-600 mt-4" id="r-lote-nome">—</div>
+                </div>
+                <div>
+                  <div class="text-sm">Data de Nascimento</div>
+                  <div class="fw-600 mt-4" id="r-lote-nasc">—</div>
+                </div>
+                <div>
+                  <div class="text-sm">Início da Postura</div>
+                  <div class="fw-600 mt-4" id="r-lote-postura">—</div>
+                </div>
+                <div>
+                  <div class="text-sm">Raça/Linhagem</div>
+                  <div class="fw-600 mt-4" id="r-lote-raca">—</div>
+                </div>
+                <div>
+                  <div class="text-sm">Qtd. Inicial</div>
+                  <div class="fw-600 mt-4" id="r-lote-qtd">—</div>
+                </div>
+                <div>
+                  <div class="text-sm">Semanas de Vida</div>
+                  <div class="fw-600 mt-4" id="r-lote-semanas">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== COLETA DE OVOS ===== -->
+      <section class="page-section" id="page-ovos">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Registrar Coleta Diária</span></div>
+            <div class="card-body">
+              <div class="alert alert-info" style="background:var(--verde-bg); margin-bottom:16px;">
+                <i class="fa fa-info-circle"></i>
+                Os ovos serão registrados automaticamente para o lote ativo.
+              </div>
+              <div class="form-group">
+                <label>Data da Coleta</label>
+                <input type="date" id="ovo-data">
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Ovos Inteiros</label>
+                  <input type="number" id="ovo-inteiros" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                  <label>Ovos Trincados</label>
+                  <input type="number" id="ovo-trincados" placeholder="0" min="0">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Medicação Antifúngica nos Ovos</label>
+                <select id="ovo-medicacao">
+                  <option value="nao">Não aplicada</option>
+                  <option value="sim">Aplicada</option>
+                </select>
+              </div>
+              <div class="form-group" id="med-detalhe" style="display:none">
+                <label>Produto Utilizado</label>
+                <input type="text" id="ovo-med-produto" placeholder="Nome do produto/dosagem">
+              </div>
+              <div class="form-group">
+                <label>Observações</label>
+                <textarea id="ovo-obs" rows="2" placeholder="Observações adicionais..."></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="salvarOvo()">
+                <i class="fa fa-save"></i> Registrar Coleta
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Histórico de Coletas</span>
+              <div class="period-select">
+                <button class="period-btn active" onclick="setPeriod('ovos','7d',this)">7d</button>
+                <button class="period-btn" onclick="setPeriod('ovos','30d',this)">30d</button>
+                <button class="period-btn" onclick="setPeriod('ovos','all',this)">Todos</button>
+              </div>
+            </div>
+            <div class="card-body" style="padding:0; max-height:400px; overflow-y:auto;">
+              <table class="data-table">
+                <thead><tr><th>Data</th><th>Lote</th><th>Inteiros</th><th>Trincados</th><th>Total</th><th>Med.</th></tr></thead>
+                <tbody id="tb-ovos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== RAÇÃO E ÁGUA ===== -->
+      <section class="page-section" id="page-racao">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Lançar Consumo com Rateio</span></div>
+            <div class="card-body">
+              <div class="alert alert-success" style="background:var(--verde-bg); margin-bottom:16px;">
+                <i class="fa fa-calculator"></i>
+                O sistema irá distribuir o custo de ração e água automaticamente entre todas as aves ativas!
+              </div>
+              <div class="form-group">
+                <label>Data</label>
+                <input type="date" id="ra-data">
+              </div>
+              <div class="form-group">
+                <label>Tipo de Ração</label>
+                <select id="ra-tipo">
+                  <option>Ração Postura Fase 1</option>
+                  <option>Ração Postura Fase 2</option>
+                  <option>Ração Crescimento</option>
+                  <option>Ração Engorda</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Quantidade de Ração (kg)</label>
+                <input type="number" id="ra-racao-kg" placeholder="0.00" min="0" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Custo Total da Ração (R$)</label>
+                <div class="input-prefix">
+                  <span>R$</span>
+                  <input type="number" id="ra-racao-custo" placeholder="0,00" min="0" step="0.01">
+                </div>
+              </div>
+              <hr class="divider">
+              <div class="form-group">
+                <label>Volume de Água (litros)</label>
+                <input type="number" id="ra-agua-litros" placeholder="0" min="0" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Custo Total da Água (R$)</label>
+                <div class="input-prefix">
+                  <span>R$</span>
+                  <input type="number" id="ra-agua-custo" placeholder="0,00" min="0" step="0.01">
+                </div>
+              </div>
+              
+              <!-- Preview do rateio -->
+              <div class="rateio-box" id="preview-rateio" style="display:none;">
+                <h4><i class="fa fa-chart-line"></i> Rateio do Consumo</h4>
+                <div class="rateio-row">
+                  <span class="rateio-label">Aves ativas:</span>
+                  <span class="rateio-value" id="preview-aves">0</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">Ração por ave:</span>
+                  <span class="rateio-value" id="preview-racao-ave">0 kg</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">Custo ração/ave:</span>
+                  <span class="rateio-value" id="preview-custo-racao-ave">R$ 0,00</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">Água por ave:</span>
+                  <span class="rateio-value" id="preview-agua-ave">0 L</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">Custo água/ave:</span>
+                  <span class="rateio-value" id="preview-custo-agua-ave">R$ 0,00</span>
+                </div>
+              </div>
+              
+              <button class="btn btn-primary" onclick="salvarRacao()">
+                <i class="fa fa-save"></i> Registrar Consumo com Rateio
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">Histórico de Consumo</span></div>
+            <div class="card-body" style="padding:0; max-height:460px; overflow-y:auto;">
+              <table class="data-table">
+                <thead><tr><th>Data</th><th>Ração (kg)</th><th>Custo Ração</th><th>Água (L)</th><th>Custo Água</th><th>Custo/Ave</th></tr></thead>
+                <tbody id="tb-racao"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== MEDICAÇÃO ===== -->
+      <section class="page-section" id="page-medicacao">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Registrar Medicação</span></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>Data da Aplicação</label>
+                <input type="date" id="med-data">
+              </div>
+              <div class="form-group">
+                <label>Produto</label>
+                <input type="text" id="med-produto" placeholder="Nome do medicamento/produto">
+              </div>
+              <div class="form-group">
+                <label>Finalidade</label>
+                <select id="med-finalidade">
+                  <option>Antifúngico (ovos)</option>
+                  <option>Vacina</option>
+                  <option>Antibiótico</option>
+                  <option>Antiparasitário</option>
+                  <option>Vitaminas/Suplemento</option>
+                  <option>Desinfetante</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Quantidade/Dose</label>
+                  <input type="text" id="med-dose" placeholder="Ex: 10ml, 500g">
+                </div>
+                <div class="form-group">
+                  <label>Custo Total (R$)</label>
+                  <div class="input-prefix">
+                    <span>R$</span>
+                    <input type="number" id="med-custo" placeholder="0,00" step="0.01">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Aves Tratadas</label>
+                <input type="number" id="med-aves" placeholder="Número de aves tratadas">
+              </div>
+              <div class="form-group">
+                <label>Observações</label>
+                <textarea id="med-obs" rows="2" placeholder="Observações sobre a aplicação..."></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="salvarMedicacao()">
+                <i class="fa fa-save"></i> Registrar Medicação
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">Histórico de Medicações</span></div>
+            <div class="card-body" style="padding:0; max-height:460px; overflow-y:auto;">
+              <table class="data-table">
+                <thead><tr><th>Data</th><th>Produto</th><th>Finalidade</th><th>Custo</th><th>Custo/Ave</th></tr></thead>
+                <tbody id="tb-medicacao"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== MORTALIDADE ===== -->
+      <section class="page-section" id="page-mortalidade">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Registrar Mortalidade</span></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>Data</label>
+                <input type="date" id="mort-data">
+              </div>
+              <div class="form-group">
+                <label>Quantidade de Aves Mortas</label>
+                <input type="number" id="mort-qtd" placeholder="0" min="1">
+              </div>
+              <div class="form-group">
+                <label>Causa Provável</label>
+                <select id="mort-causa">
+                  <option>Doença</option>
+                  <option>Acidente / Trauma</option>
+                  <option>Estresse térmico</option>
+                  <option>Problema nutricional</option>
+                  <option>Predador</option>
+                  <option>Causa desconhecida</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Observações</label>
+                <textarea id="mort-obs" rows="3" placeholder="Descreva sintomas ou circunstâncias observadas..."></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="salvarMortalidade()">
+                <i class="fa fa-save"></i> Registrar Mortalidade
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">Histórico de Mortalidade</span></div>
+            <div class="card-body" style="padding:0;">
+              <table class="data-table">
+                <thead><tr><th>Data</th><th>Qtd.</th><th>Causa</th></tr></thead>
+                <tbody id="tb-mortalidade"></tbody>
+              </table>
+            </div>
+            <div class="card-body" style="border-top:1px solid var(--cinza-2);">
+              <div class="rateio-box">
+                <h4><i class="fa fa-chart-pie"></i> Indicadores de Mortalidade</h4>
+                <div class="rateio-row">
+                  <span class="rateio-label">Total no período</span>
+                  <span class="rateio-value" id="mort-total">0 aves</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">% de mortalidade</span>
+                  <span class="rateio-value" id="mort-perc">0%</span>
+                </div>
+                <div class="rateio-row">
+                  <span class="rateio-label">Aves ativas (estimado)</span>
+                  <span class="rateio-value" id="mort-ativas">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== CUSTOS ===== -->
+      <section class="page-section" id="page-custos">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Lançar Custo / Despesa</span></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>Data</label>
+                <input type="date" id="custo-data">
+              </div>
+              <div class="form-group">
+                <label>Categoria</label>
+                <select id="custo-categoria">
+                  <optgroup label="Insumos">
+                    <option value="racao">Ração</option>
+                    <option value="agua">Água</option>
+                    <option value="medicamento">Medicamentos</option>
+                    <option value="vacina">Vacinas</option>
+                  </optgroup>
+                  <optgroup label="Infraestrutura">
+                    <option value="energia">Energia Elétrica</option>
+                    <option value="manutencao">Manutenção</option>
+                    <option value="equipamento">Equipamentos</option>
+                    <option value="instalacao">Instalações</option>
+                  </optgroup>
+                  <optgroup label="Pessoal">
+                    <option value="mao_de_obra">Mão de Obra</option>
+                    <option value="terceiros">Serviços Terceiros</option>
+                  </optgroup>
+                  <optgroup label="Outros">
+                    <option value="transporte">Transporte</option>
+                    <option value="embalagem">Embalagem</option>
+                    <option value="outros">Outros</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Descrição</label>
+                <input type="text" id="custo-descricao" placeholder="Descreva o gasto...">
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Valor (R$)</label>
+                  <div class="input-prefix">
+                    <span>R$</span>
+                    <input type="number" id="custo-valor" placeholder="0,00" step="0.01" min="0">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Tipo</label>
+                  <select id="custo-tipo">
+                    <option value="fixo">Custo Fixo</option>
+                    <option value="variavel">Custo Variável</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Fornecedor / Referência</label>
+                <input type="text" id="custo-fornecedor" placeholder="Nome do fornecedor">
+              </div>
+              <button class="btn btn-primary" onclick="salvarCusto()">
+                <i class="fa fa-save"></i> Registrar Custo
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Custos do Mês</span>
+              <span class="badge badge-verde fw-600 font-mono" id="total-custos-mes">R$ 0,00</span>
+            </div>
+            <div class="card-body" style="padding:0; max-height:400px; overflow-y:auto;">
+              <table class="data-table">
+                <thead><tr><th>Data</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+                <tbody id="tb-custos"></tbody>
+              </table>
+            </div>
+            <div class="card-body" style="border-top:1px solid var(--cinza-2);">
+              <div class="rateio-box">
+                <h4><i class="fa fa-layer-group"></i> Resumo por Categoria</h4>
+                <div id="resumo-categorias"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== RATEIO ===== -->
+      <section class="page-section" id="page-rateio">
+        <div class="mb-4">
+          <div class="period-select">
+            <button class="period-btn active" onclick="setRateioPeriod('semana',this)">Semana</button>
+            <button class="period-btn" onclick="setRateioPeriod('mes',this)">Mês</button>
+            <button class="period-btn" onclick="setRateioPeriod('total',this)">Total</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Total de Custos</div>
+            <div class="kpi-value font-mono" id="r-total">R$ 0</div>
+            <div class="kpi-sub">Período selecionado</div>
+          </div>
+          <div class="kpi-card amarelo">
+            <div class="kpi-label">Aves no Período</div>
+            <div class="kpi-value font-mono" id="r-aves">0</div>
+            <div class="kpi-sub">Média do período</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Ovos Produzidos</div>
+            <div class="kpi-value font-mono" id="r-ovos">0</div>
+            <div class="kpi-sub">Unidades totais</div>
+          </div>
+          <div class="kpi-card azul">
+            <div class="kpi-label">Custo por Ave</div>
+            <div class="kpi-value font-mono" id="r-custo-ave">R$ 0,00</div>
+            <div class="kpi-sub">Total ÷ aves</div>
+          </div>
+          <div class="kpi-card azul">
+            <div class="kpi-label">Custo por Ovo</div>
+            <div class="kpi-value font-mono" id="r-custo-ovo">R$ 0,00</div>
+            <div class="kpi-sub">Total ÷ ovos</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Produtividade</div>
+            <div class="kpi-value font-mono" id="r-produtividade">0%</div>
+            <div class="kpi-sub">Ovos/ave/dia</div>
+          </div>
+        </div>
+
+        <div class="grid-2 mt-6">
+          <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fa fa-table text-verde"></i> Rateio Detalhado</span></div>
+            <div class="card-body" style="padding:0;">
+              <table class="data-table">
+                <thead><tr><th>Categoria</th><th>Valor Total</th><th>% do Total</th><th>Custo/Ave</th><th>Custo/Ovo</th></tr></thead>
+                <tbody id="tb-rateio"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fa fa-chart-pie text-verde"></i> Distribuição de Custos</span></div>
+            <div class="card-body">
+              <div id="grafico-pizza" style="height:220px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== RELATÓRIOS ===== -->
+      <section class="page-section" id="page-relatorios">
+        <div class="card mb-4">
+          <div class="card-header"><span class="card-title">Gerar Relatório</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Período Inicial</label>
+                <input type="date" id="rel-inicio">
+              </div>
+              <div class="form-group">
+                <label>Período Final</label>
+                <input type="date" id="rel-fim">
+              </div>
+              <div class="form-group">
+                <label>Tipo de Relatório</label>
+                <select id="rel-tipo">
+                  <option value="completo">Relatório Completo</option>
+                  <option value="custos">Custos e Despesas</option>
+                  <option value="producao">Produção de Ovos</option>
+                  <option value="rateio">Rateio por Ave/Ovo</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:8px" onclick="gerarRelatorio()">
+              <i class="fa fa-file-pdf"></i> Gerar Relatório
+            </button>
+            <button class="btn btn-secondary" style="margin-top:8px" onclick="window.print()">
+              <i class="fa fa-print"></i> Imprimir
+            </button>
+          </div>
+        </div>
+
+        <div class="card" id="relatorio-preview" style="display:none;">
+          <div class="card-header">
+            <span class="card-title">Preview do Relatório</span>
+            <button class="btn btn-sm btn-secondary" onclick="window.print()"><i class="fa fa-print"></i> Imprimir</button>
+          </div>
+          <div class="card-body" id="relatorio-body"></div>
+        </div>
+      </section>
+
+      <!-- ===== USUÁRIOS ===== -->
+      <section class="page-section" id="page-usuarios">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Cadastrar Usuário</span></div>
+            <div class="card-body">
+              <div class="alert alert-warning">
+                <i class="fa fa-exclamation-triangle"></i>
+                Apenas Diretores e Gerentes podem cadastrar colaboradores.
+              </div>
+              <div class="form-group">
+                <label>Nome Completo</label>
+                <input type="text" id="usr-nome" placeholder="Nome do usuário">
+              </div>
+              <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="usr-email" placeholder="email@ovonorte.com.br">
+              </div>
+              <div class="form-group">
+                <label>Senha Inicial</label>
+                <input type="password" id="usr-senha" placeholder="Mínimo 6 caracteres">
+              </div>
+              <div class="form-group">
+                <label>Função</label>
+                <select id="usr-funcao">
+                  <option value="colaborador">Colaborador</option>
+                  <option value="gerente" id="opt-gerente">Gerente</option>
+                  <option value="diretor" id="opt-diretor" style="display:none">Diretor</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Setor</label>
+                <input type="text" id="usr-setor" placeholder="Ex: Produção, Administrativo...">
+              </div>
+              <button class="btn btn-primary" onclick="cadastrarUsuario()">
+                <i class="fa fa-user-plus"></i> Cadastrar Usuário
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">Usuários Cadastrados</span></div>
+            <div class="card-body" style="padding:0;">
+              <table class="data-table">
+                <thead><tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Status</th></tr></thead>
+                <tbody id="tb-usuarios"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== LOTES ===== -->
+      <section class="page-section" id="page-lote">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Cadastrar Lote</span></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>Nome / Identificação do Lote</label>
+                <input type="text" id="lote-nome" placeholder="Ex: Lote A - Linhagem ISA">
+              </div>
+              <div class="form-group">
+                <label>Raça / Linhagem</label>
+                <input type="text" id="lote-raca" placeholder="Ex: ISA Brown, Lohmann...">
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Data de Nascimento</label>
+                  <input type="date" id="lote-nasc">
+                </div>
+                <div class="form-group">
+                  <label>Início da Postura</label>
+                  <input type="date" id="lote-postura">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Quantidade Inicial de Aves</label>
+                <input type="number" id="lote-qtd" placeholder="Ex: 500" min="1">
+              </div>
+              <div class="form-group">
+                <label>Custo de Aquisição (R$)</label>
+                <div class="input-prefix">
+                  <span>R$</span>
+                  <input type="number" id="lote-custo" placeholder="0,00" step="0.01">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Observações</label>
+                <textarea id="lote-obs" rows="2" placeholder="Informações do fornecedor, origem..."></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="salvarLote()">
+                <i class="fa fa-save"></i> Cadastrar Lote
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">Lotes Cadastrados</span></div>
+            <div class="card-body" style="padding:0;">
+              <table class="data-table">
+                <thead><tr><th>Nome</th><th>Raça</th><th>Nascimento</th><th>Idade</th><th>Qtd.</th><th>Ativo</th></tr></thead>
+                <tbody id="tb-lotes"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- content-area -->
+  </main>
+</div><!-- app-screen -->
+
+<script>
+// ===== FIREBASE CONFIG =====
+const firebaseConfig = {
+  apiKey: "AIzaSyAUEmX8hw1o8EKU1fXA8DUNzNMQHfvEftc",
+  authDomain: "ovonorte-94684.firebaseapp.com",
+  projectId: "ovonorte-94684",
+  storageBucket: "ovonorte-94684.firebasestorage.app",
+  messagingSenderId: "21855709216",
+  appId: "1:21855709216:web:9e9eefafaa661d1c42f445",
+  measurementId: "G-MHVG3FGXRC"
+};
+
+let useDemo = true;
+let db = null;
+let auth = null;
+let currentUser = null;
+let currentUserData = null;
+let rateioPeriod = 'mes';
+
+// Demo data store
+const STORE = {
+  users: JSON.parse(localStorage.getItem('ovo_users') || '[]'),
+  ovos: JSON.parse(localStorage.getItem('ovo_ovos') || '[]'),
+  racao: JSON.parse(localStorage.getItem('ovo_racao') || '[]'),
+  medicacao: JSON.parse(localStorage.getItem('ovo_medicacao') || '[]'),
+  mortalidade: JSON.parse(localStorage.getItem('ovo_mortalidade') || '[]'),
+  custos: JSON.parse(localStorage.getItem('ovo_custos') || '[]'),
+  lotes: JSON.parse(localStorage.getItem('ovo_lotes') || '[]'),
+  session: JSON.parse(localStorage.getItem('ovo_session') || 'null')
+};
+
+function saveStore(key) {
+  localStorage.setItem('ovo_' + key, JSON.stringify(STORE[key]));
+}
+
+// ===== HELPER FUNCTIONS =====
+function getActiveLote() {
+  return STORE.lotes.find(l => l.ativo) || STORE.lotes[0] || null;
+}
+
+function getLoteAves() {
+  const lote = getActiveLote();
+  if(!lote) return 0;
+  const totalMort = STORE.mortalidade.filter(m => m.loteId === lote.id).reduce((s,m) => s + (m.qtd||0), 0);
+  return Math.max(0, (lote.qtdInicial || 0) - totalMort);
+}
+
+function getAvesPorData(data) {
+  // Calcula quantas aves estavam vivas em uma determinada data
+  const lote = getActiveLote();
+  if(!lote) return 0;
+  
+  // Filtra mortalidades até a data
+  const mortAteData = STORE.mortalidade.filter(m => m.loteId === lote.id && m.data <= data).reduce((s,m) => s + (m.qtd||0), 0);
+  return Math.max(0, (lote.qtdInicial || 0) - mortAteData);
+}
+
+function fmtMoeda(v) {
+  return 'R$ ' + (v||0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function fmtData(str) {
+  if(!str) return '—';
+  const [y,m,d] = str.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function getThisMonthRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const end = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0];
+  return { start, end };
+}
+
+function getThisWeekRange() {
+  const now = new Date();
+  const day = now.getDay();
+  const start = new Date(now);
+  start.setDate(now.getDate() - day);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0] };
+}
+
+function filterByPeriod(arr, period, dateField = 'data') {
+  const today = new Date().toISOString().split('T')[0];
+  if(period === '7d') {
+    const d = new Date(); d.setDate(d.getDate()-7);
+    return arr.filter(i => i[dateField] >= d.toISOString().split('T')[0]);
+  } else if(period === '30d') {
+    const d = new Date(); d.setDate(d.getDate()-30);
+    return arr.filter(i => i[dateField] >= d.toISOString().split('T')[0]);
+  } else if(period === 'mes') {
+    const {start,end} = getThisMonthRange();
+    return arr.filter(i => i[dateField] >= start && i[dateField] <= end);
+  } else if(period === 'semana') {
+    const {start,end} = getThisWeekRange();
+    return arr.filter(i => i[dateField] >= start && i[dateField] <= end);
+  }
+  return arr;
+}
+
+function calcularIdadeLote() {
+  const lote = getActiveLote();
+  if(!lote || !lote.nascimento) return null;
+  
+  const nascimento = new Date(lote.nascimento);
+  const hoje = new Date();
+  const diffTime = Math.abs(hoje - nascimento);
+  const diffDias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const semanas = Math.floor(diffDias / 7);
+  const dias = diffDias % 7;
+  
+  return { dias: diffDias, semanas, diasResto: dias };
+}
+
+function formatarIdade() {
+  const idade = calcularIdadeLote();
+  if(!idade) return null;
+  return `${idade.semanas} semanas e ${idade.diasResto} dias`;
+}
+
+function atualizarIndicadorIdade() {
+  const lote = getActiveLote();
+  const ageIndicator = document.getElementById('age-indicator');
+  const ageDetail = document.getElementById('age-detail');
+  const ageStats = document.getElementById('age-stats');
+  
+  if(!lote || !lote.nascimento) {
+    ageIndicator.style.display = 'none';
+    return;
+  }
+  
+  ageIndicator.style.display = 'block';
+  const idade = calcularIdadeLote();
+  const aves = getLoteAves();
+  
+  ageDetail.innerHTML = `Nascidas em ${fmtData(lote.nascimento)} — ${idade.semanas} semanas e ${idade.diasResto} dias de vida`;
+  
+  // Indicadores de fase
+  let fase = '';
+  let corFase = '';
+  if(idade.semanas < 18) {
+    fase = '🐣 Fase de Recria';
+    corFase = 'var(--amarelo)';
+  } else if(idade.semanas >= 18 && idade.semanas <= 72) {
+    fase = '🥚 Fase de Produção (pico de postura)';
+    corFase = 'var(--verde)';
+  } else {
+    fase = '📉 Fase Final (queda de produção)';
+    corFase = 'var(--vermelho)';
+  }
+  
+  // Previsão de produção esperada
+  let producaoEsperada = '';
+  if(idade.semanas >= 18 && idade.semanas <= 72) {
+    const pico = idade.semanas <= 30 ? '📈 Atingindo pico' : '📉 Queda gradual';
+    producaoEsperada = `Produção esperada: ${pico} - ${Math.round(85 - (idade.semanas - 30) * 0.5)}% de postura`;
+  }
+  
+  ageStats.innerHTML = `
+    <div class="age-stat">
+      <div class="age-stat-label">Fase</div>
+      <div class="age-stat-value" style="color: ${corFase};">${fase}</div>
+    </div>
+    <div class="age-stat">
+      <div class="age-stat-label">Aves Ativas</div>
+      <div class="age-stat-value">${aves.toLocaleString('pt-BR')}</div>
+    </div>
+    ${producaoEsperada ? `<div class="age-stat">
+      <div class="age-stat-label">Previsão</div>
+      <div class="age-stat-value" style="font-size: 12px;">${producaoEsperada}</div>
+    </div>` : ''}
+  `;
+}
+
+// ===== INIT =====
+window.addEventListener('load', function() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        loadUserData(user.uid);
+      } else {
+        hideLoading();
+        showAuth();
+      }
+    });
+    useDemo = false;
+  } catch(e) {
+    console.log('Firebase não configurado, modo demo ativado');
+    useDemo = true;
+    initDemoMode();
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  ['ovo-data','ra-data','med-data','mort-data','custo-data','rel-inicio','rel-fim'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = today;
+  });
+
+  document.getElementById('ovo-medicacao').addEventListener('change', function() {
+    document.getElementById('med-detalhe').style.display = this.value === 'sim' ? 'block' : 'none';
+  });
+  
+  // Preview rateio ao digitar
+  document.getElementById('ra-racao-kg').addEventListener('input', previewRateio);
+  document.getElementById('ra-racao-custo').addEventListener('input', previewRateio);
+  document.getElementById('ra-agua-litros').addEventListener('input', previewRateio);
+  document.getElementById('ra-agua-custo').addEventListener('input', previewRateio);
+});
+
+function previewRateio() {
+  const aves = getLoteAves();
+  if(aves <= 0) {
+    document.getElementById('preview-rateio').style.display = 'none';
+    return;
+  }
+  
+  const racaoKg = parseFloat(document.getElementById('ra-racao-kg').value) || 0;
+  const racaoCusto = parseFloat(document.getElementById('ra-racao-custo').value) || 0;
+  const aguaLitros = parseFloat(document.getElementById('ra-agua-litros').value) || 0;
+  const aguaCusto = parseFloat(document.getElementById('ra-agua-custo').value) || 0;
+  
+  if(racaoKg === 0 && aguaLitros === 0) {
+    document.getElementById('preview-rateio').style.display = 'none';
+    return;
+  }
+  
+  document.getElementById('preview-rateio').style.display = 'block';
+  document.getElementById('preview-aves').textContent = aves.toLocaleString('pt-BR');
+  document.getElementById('preview-racao-ave').textContent = (racaoKg / aves).toFixed(3) + ' kg';
+  document.getElementById('preview-custo-racao-ave').textContent = fmtMoeda(racaoCusto / aves);
+  document.getElementById('preview-agua-ave').textContent = (aguaLitros / aves).toFixed(2) + ' L';
+  document.getElementById('preview-custo-agua-ave').textContent = fmtMoeda(aguaCusto / aves);
+}
+
+function initDemoMode() {
+  const session = STORE.session;
+  if(session) {
+    currentUserData = session;
+    currentUser = { uid: session.uid, email: session.email };
+    
+    if(STORE.lotes.length === 0) seedDemoData();
+    
+    hideLoading();
+    showApp();
+  } else {
+    if(STORE.users.length === 0) {
+      STORE.users.push({
+        uid: 'admin001',
+        email: 'diretor@ovonorte.com.br',
+        nome: 'Administrador',
+        funcao: 'diretor',
+        setor: 'Diretoria',
+        ativo: true,
+        senha: '123456'
+      });
+      saveStore('users');
+      seedDemoData();
+    }
+    hideLoading();
+    showAuth();
+  }
+}
+
+function seedDemoData() {
+  const today = new Date();
+  const loteId = 'lote001';
+  
+  // Data de nascimento (há 20 semanas - idade de produção)
+  const nascimento = new Date();
+  nascimento.setDate(nascimento.getDate() - (20 * 7));
+  
+  STORE.lotes.push({
+    id: loteId,
+    nome: 'Lote A - ISA Brown',
+    raca: 'ISA Brown',
+    nascimento: nascimento.toISOString().split('T')[0],
+    postura: (() => { const d = new Date(nascimento); d.setDate(d.getDate() + 126); return d.toISOString().split('T')[0]; })(),
+    qtdInicial: 500,
+    custo: 4500.00,
+    ativo: true,
+    obs: 'Lote principal - ISA Brown, alta produtividade',
+    criadoPor: 'admin001',
+    criadoEm: new Date().toISOString()
+  });
+  saveStore('lotes');
+
+  // Seed 30 days of eggs
+  for(let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const base = 420 + Math.floor(Math.random() * 60);
+    STORE.ovos.push({ id: 'ovo'+i, data: dateStr, inteiros: base, trincados: Math.floor(Math.random()*10), medicacao: 'nao', obs: '', loteId, criadoEm: new Date().toISOString() });
+  }
+  saveStore('ovos');
+
+  // Seed costs
+  const cats = ['racao','agua','energia','mao_de_obra','medicamento'];
+  for(let i = 0; i < 12; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - Math.floor(Math.random()*30));
+    STORE.custos.push({
+      id: 'custo'+i,
+      data: d.toISOString().split('T')[0],
+      categoria: cats[i % cats.length],
+      descricao: ['Saco ração postura 20kg', 'Conta de água', 'Energia elétrica', 'Salário funcionário', 'Vitaminas B12'][i%5],
+      valor: [850, 120, 380, 1800, 95][i%5] + Math.random()*50,
+      tipo: i < 4 ? 'fixo' : 'variavel',
+      fornecedor: 'Fornecedor Demo',
+      loteId, criadoEm: new Date().toISOString()
+    });
+  }
+  saveStore('custos');
+
+  // Seed ração com rateio
+  for(let i = 0; i < 10; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i*3);
+    const racaoKg = 60 + Math.random()*20;
+    const racaoCusto = 180 + Math.random()*30;
+    const avesNaData = 500 - (i * 2);
+    STORE.racao.push({
+      id: 'racao'+i,
+      data: d.toISOString().split('T')[0],
+      tipo: 'Ração Postura Fase 1',
+      racaoKg: racaoKg,
+      racaoCusto: racaoCusto,
+      aguaLitros: 150 + Math.random()*50,
+      aguaCusto: 8 + Math.random()*4,
+      custoPorAve: (racaoCusto + (8 + Math.random()*4)) / avesNaData,
+      loteId, criadoEm: new Date().toISOString()
+    });
+  }
+  saveStore('racao');
+}
+
+// ===== AUTH =====
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  
+  if(!email || !pass) { showAuthError('Preencha e-mail e senha.'); return; }
+  
+  const btn = document.getElementById('btn-login');
+  btn.innerHTML = '<span class="spinner"></span> Entrando...';
+  btn.disabled = true;
+
+  if(useDemo) {
+    const user = STORE.users.find(u => u.email === email && u.senha === pass && u.ativo !== false);
+    if(user) {
+      currentUser = { uid: user.uid, email: user.email };
+      currentUserData = user;
+      STORE.session = user;
+      saveStore('session');
+      hideAuthError();
+      showApp();
+    } else {
+      showAuthError('E-mail ou senha incorretos.');
+    }
+    btn.innerHTML = '<i class="fa fa-sign-in-alt"></i> Entrar no Sistema';
+    btn.disabled = false;
+  } else {
+    try {
+      await auth.signInWithEmailAndPassword(email, pass);
+    } catch(e) {
+      showAuthError('E-mail ou senha incorretos.');
+      btn.innerHTML = '<i class="fa fa-sign-in-alt"></i> Entrar no Sistema';
+      btn.disabled = false;
+    }
+  }
+}
+
+async function loadUserData(uid) {
+  try {
+    const doc = await db.collection('usuarios').doc(uid).get();
+    if(doc.exists) {
+      currentUserData = doc.data();
+    } else {
+      currentUserData = { nome: currentUser.email, funcao: 'colaborador' };
+    }
+    showApp();
+  } catch(e) {
+    currentUserData = { nome: currentUser.email, funcao: 'colaborador' };
+    showApp();
+  }
+}
+
+function doLogout() {
+  if(useDemo) {
+    STORE.session = null;
+    saveStore('session');
+    currentUser = null;
+    currentUserData = null;
+  } else {
+    auth.signOut();
+  }
+  document.getElementById('app-screen').style.display = 'none';
+  showAuth();
+}
+
+function showAuth() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  setupUserUI();
+  loadDashboard();
+  atualizarIndicadorIdade();
+}
+
+function setupUserUI() {
+  const u = currentUserData;
+  if(!u) return;
+  
+  const initials = (u.nome || u.email || 'US').split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent = u.nome || u.email;
+  
+  const funcaoLabel = { diretor: 'Diretor(a)', gerente: 'Gerente', colaborador: 'Colaborador(a)' };
+  document.getElementById('user-role').textContent = funcaoLabel[u.funcao] || u.funcao;
+  
+  const isAdmin = u.funcao === 'diretor' || u.funcao === 'gerente';
+  document.getElementById('nav-admin').style.display = isAdmin ? 'block' : 'none';
+  
+  if(u.funcao === 'diretor') {
+    document.getElementById('opt-diretor').style.display = 'block';
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideAuthError() {
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+// ===== NAVIGATION =====
+function showPage(page) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + page + "'")) {
+      n.classList.add('active');
+    }
+  });
+  
+  const titles = {
+    dashboard: ['Dashboard', 'Visão geral do sistema'],
+    ovos: ['Coleta de Ovos', 'Registro diário de produção'],
+    racao: ['Ração & Água', 'Controle de consumo com rateio automático'],
+    medicacao: ['Medicação', 'Registro de tratamentos'],
+    mortalidade: ['Mortalidade', 'Controle de perdas'],
+    custos: ['Custos & Despesas', 'Lançamento e controle de gastos'],
+    rateio: ['Rateio por Ave / Ovo', 'Cálculo de custo unitário'],
+    relatorios: ['Relatórios Financeiros', 'Geração de relatórios'],
+    usuarios: ['Usuários', 'Cadastro e gestão de usuários'],
+    lote: ['Lotes / Linhagens', 'Gerenciamento de lotes']
+  };
+  
+  if(titles[page]) {
+    document.getElementById('page-title').textContent = titles[page][0];
+    document.getElementById('page-meta').textContent = titles[page][1];
+  }
+  
+  const loaders = {
+    ovos: loadOvos, racao: loadRacao, medicacao: loadMedicacao,
+    mortalidade: loadMortalidade, custos: loadCustos,
+    rateio: loadRateio, relatorios: () => {},
+    usuarios: loadUsuarios, lote: loadLotes
+  };
+  if(loaders[page]) loaders[page]();
+  atualizarIndicadorIdade();
+}
+
+function hideLoading() {
+  document.getElementById('loading').style.display = 'none';
+}
+
+function notify(msg, type='success') {
+  const el = document.getElementById('notification');
+  const icon = type === 'success' ? 'fa-check-circle' : 'fa-circle-xmark';
+  el.className = 'notification ' + type;
+  el.querySelector('i').className = 'fa ' + icon;
+  document.getElementById('notification-text').textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ===== DASHBOARD =====
+function loadDashboard() {
+  const lote = getActiveLote();
+  const aves = getLoteAves();
+  const {start, end} = getThisMonthRange();
+  
+  document.getElementById('lote-ativo-badge').textContent = lote ? lote.nome : 'Sem lote ativo';
+  
+  const ovosMes = STORE.ovos.filter(o => o.data >= start && o.data <= end);
+  const totalOvosMes = ovosMes.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
+  
+  const ovosHoje = STORE.ovos.filter(o => o.data === new Date().toISOString().split('T')[0]);
+  const totalHoje = ovosHoje.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
+  
+  const custosMes = STORE.custos.filter(c => c.data >= start && c.data <= end);
+  const totalCustos = custosMes.reduce((s,c) => s + (c.valor||0), 0);
+  
+  const mortMes = STORE.mortalidade.filter(m => m.data >= start && m.data <= end);
+  const totalMort = mortMes.reduce((s,m) => s + (m.qtd||0), 0);
+  
+  document.getElementById('kpi-aves').textContent = aves.toLocaleString('pt-BR');
+  document.getElementById('kpi-ovos-hoje').textContent = totalHoje.toLocaleString('pt-BR');
+  document.getElementById('kpi-ovos-mes').textContent = totalOvosMes.toLocaleString('pt-BR');
+  document.getElementById('kpi-mort').textContent = totalMort;
+  document.getElementById('kpi-custo-ave').textContent = aves > 0 ? fmtMoeda(totalCustos / aves) : '—';
+  document.getElementById('kpi-custo-ovo').textContent = totalOvosMes > 0 ? fmtMoeda(totalCustos / totalOvosMes) : '—';
+  
+  if(lote) {
+    document.getElementById('r-lote-nome').textContent = lote.nome;
+    document.getElementById('r-lote-nasc').textContent = fmtData(lote.nascimento);
+    document.getElementById('r-lote-postura').textContent = fmtData(lote.postura);
+    document.getElementById('r-lote-raca').textContent = lote.raca || '—';
+    document.getElementById('r-lote-qtd').textContent = (lote.qtdInicial||0).toLocaleString('pt-BR') + ' aves';
+    
+    if(lote.nascimento) {
+      const semanas = Math.floor((new Date() - new Date(lote.nascimento)) / (7*24*3600*1000));
+      document.getElementById('r-lote-semanas').textContent = semanas + ' semanas';
+    }
+  }
+  
+  buildOvosChart();
+  
+  const all = [
+    ...STORE.ovos.map(o => ({ data: o.data, tipo: `Coleta de Ovos (${o.loteId === lote?.id ? lote?.nome : 'Outro lote'})`, valor: (o.inteiros||0)+(o.trincados||0)+' unid.' })),
+    ...STORE.custos.map(c => ({ data: c.data, tipo: c.descricao||'Custo', valor: fmtMoeda(c.valor) }))
+  ].sort((a,b) => b.data.localeCompare(a.data)).slice(0,8);
+  
+  const tb = document.getElementById('tb-recentes');
+  tb.innerHTML = all.length === 0
+    ? '<tr><td colspan="3" class="empty-state"><i class="fa fa-inbox"></i><p>Nenhum lançamento</p></tr></tr>'
+    : all.map(r => `<tr><td>${fmtData(r.data)}</td><td>${r.tipo}</td><td class="font-mono fw-600">${r.valor}</td></tr>`).join('');
+}
+
+function buildOvosChart() {
+  const area = document.getElementById('chart-ovos');
+  const labels = document.getElementById('chart-labels');
+  if(!area) return;
+  
+  const weeks = [];
+  for(let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i * 7);
+    const start = new Date(d);
+    start.setDate(d.getDate() - d.getDay());
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    const s = start.toISOString().split('T')[0];
+    const e = end.toISOString().split('T')[0];
+    const total = STORE.ovos.filter(o => o.data >= s && o.data <= e).reduce((sum,o) => sum+(o.inteiros||0)+(o.trincados||0), 0);
+    weeks.push({ label: `S${7-i}`, total });
+  }
+  
+  const max = Math.max(...weeks.map(w => w.total), 1);
+  area.innerHTML = weeks.map(w => {
+    const h = Math.round((w.total / max) * 160);
+    return `<div class="chart-bar" style="height:${h}px" title="${w.label}: ${w.total.toLocaleString('pt-BR')} ovos"></div>`;
+  }).join('');
+  labels.innerHTML = weeks.map(w => `<span>${w.label}<br><b>${w.total.toLocaleString('pt-BR')}</b></span>`).join('');
+}
+
+// ===== OVOS =====
+let ovosPeriod = '7d';
+function setPeriod(ctx, period, btn) {
+  btn.closest('.period-select').querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if(ctx === 'ovos') { ovosPeriod = period; loadOvos(); }
+}
+
+function loadOvos() {
+  const filtered = filterByPeriod([...STORE.ovos].sort((a,b) => b.data.localeCompare(a.data)), ovosPeriod);
+  const lotesMap = STORE.lotes.reduce((map, l) => { map[l.id] = l.nome; return map; }, {});
+  
+  const tb = document.getElementById('tb-ovos');
+  tb.innerHTML = filtered.length === 0
+    ? '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
+    : filtered.map(o => `
+      <tr>
+        <td>${fmtData(o.data)}</td>
+        <td><span class="badge badge-verde">${lotesMap[o.loteId] || '—'}</span></td>
+        <td>${(o.inteiros||0).toLocaleString('pt-BR')}</td>
+        <td>${(o.trincados||0).toLocaleString('pt-BR')}</td>
+        <td class="fw-600">${((o.inteiros||0)+(o.trincados||0)).toLocaleString('pt-BR')}</td>
+        <td>${o.medicacao === 'sim' ? '<span class="badge badge-verde">Sim</span>' : '—'}</td>
+      </tr>`).join('');
+}
+
+function salvarOvo() {
+  const data = document.getElementById('ovo-data').value;
+  const inteiros = parseInt(document.getElementById('ovo-inteiros').value) || 0;
+  const trincados = parseInt(document.getElementById('ovo-trincados').value) || 0;
+  const medicacao = document.getElementById('ovo-medicacao').value;
+  const medProduto = document.getElementById('ovo-med-produto').value;
+  const obs = document.getElementById('ovo-obs').value;
+  
+  if(!data) { notify('Informe a data', 'error'); return; }
+  if(inteiros + trincados === 0) { notify('Informe a quantidade de ovos', 'error'); return; }
+  
+  const lote = getActiveLote();
+  if(!lote) { notify('Não há lote ativo. Cadastre um lote primeiro!', 'error'); return; }
+  
+  const item = { id: 'ovo_'+Date.now(), data, inteiros, trincados, medicacao, medProduto, obs, loteId: lote.id, criadoEm: new Date().toISOString() };
+  STORE.ovos.push(item);
+  saveStore('ovos');
+  
+  notify('Coleta registrada com sucesso!');
+  document.getElementById('ovo-inteiros').value = '';
+  document.getElementById('ovo-trincados').value = '';
+  document.getElementById('ovo-obs').value = '';
+  loadOvos();
+  loadDashboard();
+}
+
+// ===== RAÇÃO COM RATEIO =====
+function loadRacao() {
+  const sorted = [...STORE.racao].sort((a,b) => b.data.localeCompare(a.data));
+  const tb = document.getElementById('tb-racao');
+  tb.innerHTML = sorted.length === 0
+    ? '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
+    : sorted.map(r => {
+        const custoPorAve = r.custoPorAve || ((r.racaoCusto + r.aguaCusto) / (r.avesNaData || getLoteAves()));
+        return `
+          <tr>
+            <td>${fmtData(r.data)}</td>
+            <td class="font-mono">${(r.racaoKg||0).toFixed(1)} kg</td>
+            <td class="font-mono">${fmtMoeda(r.racaoCusto)}</td>
+            <td class="font-mono">${(r.aguaLitros||0).toFixed(1)} L</td>
+            <td class="font-mono">${fmtMoeda(r.aguaCusto)}</td>
+            <td class="font-mono">${fmtMoeda(custoPorAve)}</td>
+          </tr>`;
+      }).join('');
+}
+
+function salvarRacao() {
+  const data = document.getElementById('ra-data').value;
+  if(!data) { notify('Informe a data', 'error'); return; }
+  
+  const lote = getActiveLote();
+  if(!lote) { notify('Não há lote ativo. Cadastre um lote primeiro!', 'error'); return; }
+  
+  const racaoKg = parseFloat(document.getElementById('ra-racao-kg').value) || 0;
+  const racaoCusto = parseFloat(document.getElementById('ra-racao-custo').value) || 0;
+  const aguaLitros = parseFloat(document.getElementById('ra-agua-litros').value) || 0;
+  const aguaCusto = parseFloat(document.getElementById('ra-agua-custo').value) || 0;
+  
+  if(racaoKg === 0 && aguaLitros === 0) {
+    notify('Informe pelo menos um consumo (ração ou água)', 'error');
+    return;
+  }
+  
+  // Calcula número de aves na data
+  const avesNaData = getAvesPorData(data);
+  if(avesNaData <= 0) {
+    notify('Não há aves vivas nesta data!', 'error');
+    return;
+  }
+  
+  const custoTotal = racaoCusto + aguaCusto;
+  const custoPorAve = custoTotal / avesNaData;
+  
+  const item = {
+    id: 'ra_'+Date.now(),
+    data,
+    tipo: document.getElementById('ra-tipo').value,
+    racaoKg,
+    racaoCusto,
+    aguaLitros,
+    aguaCusto,
+    custoPorAve,
+    avesNaData,
+    loteId: lote.id,
+    criadoEm: new Date().toISOString()
+  };
+  
+  STORE.racao.push(item);
+  saveStore('racao');
+  
+  // Adiciona aos custos separadamente para rateio geral
+  if(racaoCusto > 0) addCustoAuto('racao', data, `Ração - ${item.tipo} (${racaoKg}kg)`, racaoCusto, 'variavel', lote.id, custoPorAve * (racaoCusto/custoTotal));
+  if(aguaCusto > 0) addCustoAuto('agua', data, `Água (${aguaLitros}L)`, aguaCusto, 'variavel', lote.id, custoPorAve * (aguaCusto/custoTotal));
+  
+  notify(`Consumo registrado! Custo por ave: ${fmtMoeda(custoPorAve)}`);
+  
+  document.getElementById('ra-racao-kg').value = '';
+  document.getElementById('ra-racao-custo').value = '';
+  document.getElementById('ra-agua-litros').value = '';
+  document.getElementById('ra-agua-custo').value = '';
+  document.getElementById('preview-rateio').style.display = 'none';
+  
+  loadRacao();
+  loadDashboard();
+}
+
+function addCustoAuto(categoria, data, descricao, valor, tipo, loteId, custoPorAve = null) {
+  STORE.custos.push({ 
+    id: 'ca_'+Date.now(), 
+    data, 
+    categoria, 
+    descricao, 
+    valor, 
+    tipo, 
+    fornecedor: 'Auto-lançado (consumo)', 
+    loteId, 
+    custoPorAve,
+    criadoEm: new Date().toISOString() 
+  });
+  saveStore('custos');
+}
+
+// ===== MEDICAÇÃO =====
+function loadMedicacao() {
+  const sorted = [...STORE.medicacao].sort((a,b) => b.data.localeCompare(a.data));
+  const tb = document.getElementById('tb-medicacao');
+  tb.innerHTML = sorted.length === 0
+    ? '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">Nenhum registro</td></tr>'
+    : sorted.map(m => {
+        const avesTratadas = m.aves || getLoteAves();
+        const custoPorAve = m.custo / avesTratadas;
+        return `
+          <tr>
+            <td>${fmtData(m.data)}</td>
+            <td class="fw-600">${m.produto||'—'}</td>
+            <td><span class="badge badge-verde">${m.finalidade||'—'}</span></td>
+            <td class="font-mono">${fmtMoeda(m.custo)}</td>
+            <td class="font-mono">${fmtMoeda(custoPorAve)}</td>
+          </tr>`;
+      }).join('');
+}
+
+function salvarMedicacao() {
+  const data = document.getElementById('med-data').value;
+  const produto = document.getElementById('med-produto').value;
+  if(!data || !produto) { notify('Preencha os campos obrigatórios', 'error'); return; }
+  
+  const lote = getActiveLote();
+  const custo = parseFloat(document.getElementById('med-custo').value) || 0;
+  const avesTratadas = parseInt(document.getElementById('med-aves').value) || getLoteAves();
+  
+  const item = {
+    id: 'med_'+Date.now(), data, produto,
+    finalidade: document.getElementById('med-finalidade').value,
+    dose: document.getElementById('med-dose').value,
+    custo,
+    aves: avesTratadas,
+    obs: document.getElementById('med-obs').value,
+    loteId: lote?.id, 
+    criadoEm: new Date().toISOString()
+  };
+  
+  STORE.medicacao.push(item);
+  saveStore('medicacao');
+  
+  if(custo > 0) addCustoAuto('medicamento', data, `Medicação: ${produto}`, custo, 'variavel', lote?.id);
+  
+  notify('Medicação registrada!');
+  document.getElementById('med-produto').value = '';
+  document.getElementById('med-dose').value = '';
+  document.getElementById('med-custo').value = '';
+  document.getElementById('med-obs').value = '';
+  loadMedicacao();
+}
+
+// ===== MORTALIDADE =====
+function loadMortalidade() {
+  const lote = getActiveLote();
+  const sorted = [...STORE.mortalidade].sort((a,b) => b.data.localeCompare(a.data));
+  const tb = document.getElementById('tb-mortalidade');
+  tb.innerHTML = sorted.length === 0
+    ? '<tr><td colspan="3" class="text-muted"style="text-align:center;padding:20px">Nenhum registro</td></tr>'
+    : sorted.map(m => `<tr><td>${fmtData(m.data)}</td><td class="fw-600 text-vermelho">${m.qtd}</td><td>${m.causa||'—'}</td></tr>`).join('');
+  
+  const total = sorted.reduce((s,m) => s + (m.qtd||0), 0);
+  const qtdInicial = lote?.qtdInicial || 0;
+  const perc = qtdInicial > 0 ? ((total / qtdInicial) * 100).toFixed(1) : '0.0';
+  const ativas = qtdInicial - total;
+  
+  document.getElementById('mort-total').textContent = total + ' aves';
+  document.getElementById('mort-perc').textContent = perc + '%';
+  document.getElementById('mort-ativas').textContent = Math.max(0, ativas).toLocaleString('pt-BR');
+}
+
+function salvarMortalidade() {
+  const data = document.getElementById('mort-data').value;
+  const qtd = parseInt(document.getElementById('mort-qtd').value) || 0;
+  if(!data || qtd < 1) { notify('Informe a data e quantidade', 'error'); return; }
+  
+  const lote = getActiveLote();
+  STORE.mortalidade.push({
+    id: 'mort_'+Date.now(), data, qtd,
+    causa: document.getElementById('mort-causa').value,
+    obs: document.getElementById('mort-obs').value,
+    loteId: lote?.id, criadoEm: new Date().toISOString()
+  });
+  saveStore('mortalidade');
+  notify('Mortalidade registrada.');
+  document.getElementById('mort-qtd').value = '';
+  document.getElementById('mort-obs').value = '';
+  loadMortalidade();
+  loadDashboard();
+  atualizarIndicadorIdade();
+}
+
+// ===== CUSTOS =====
+function loadCustos() {
+  const {start, end} = getThisMonthRange();
+  const sorted = [...STORE.custos].sort((a,b) => b.data.localeCompare(a.data));
+  const mesCustos = sorted.filter(c => c.data >= start && c.data <= end);
+  
+  const total = mesCustos.reduce((s,c) => s + (c.valor||0), 0);
+  document.getElementById('total-custos-mes').textContent = fmtMoeda(total);
+  
+  const tb = document.getElementById('tb-custos');
+  tb.innerHTML = mesCustos.length === 0
+    ? '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">Nenhum custo este mês</td></tr>'
+    : mesCustos.map(c => `
+      <tr>
+        <td>${fmtData(c.data)}</td>
+        <td><span class="badge badge-verde">${c.categoria||'—'}</span></td>
+        <td>${c.descricao||'—'}</td>
+        <td class="font-mono fw-600">${fmtMoeda(c.valor)}</td>
+        <td><button class="btn-icon" onclick="deletarCusto('${c.id}')"><i class="fa fa-trash"></i></button></td>
+      </tr>`).join('');
+  
+  const byCat = {};
+  mesCustos.forEach(c => {
+    byCat[c.categoria] = (byCat[c.categoria] || 0) + (c.valor||0);
+  });
+  
+  const resumo = document.getElementById('resumo-categorias');
+  resumo.innerHTML = Object.entries(byCat).sort((a,b) => b[1]-a[1]).map(([cat, val]) => `
+    <div class="rateio-row">
+      <span class="rateio-label">${cat}</span>
+      <span class="rateio-value">${fmtMoeda(val)}</span>
+    </div>`).join('') || '<div class="text-muted" style="font-size:13px">Sem dados</div>';
+}
+
+function salvarCusto() {
+  const data = document.getElementById('custo-data').value;
+  const valor = parseFloat(document.getElementById('custo-valor').value) || 0;
+  const descricao = document.getElementById('custo-descricao').value;
+  
+  if(!data || valor <= 0 || !descricao) { notify('Preencha todos os campos', 'error'); return; }
+  
+  const lote = getActiveLote();
+  STORE.custos.push({
+    id: 'custo_'+Date.now(), data,
+    categoria: document.getElementById('custo-categoria').value,
+    descricao, valor,
+    tipo: document.getElementById('custo-tipo').value,
+    fornecedor: document.getElementById('custo-fornecedor').value,
+    loteId: lote?.id, criadoEm: new Date().toISOString()
+  });
+  saveStore('custos');
+  notify('Custo lançado com sucesso!');
+  document.getElementById('custo-descricao').value = '';
+  document.getElementById('custo-valor').value = '';
+  document.getElementById('custo-fornecedor').value = '';
+  loadCustos();
+}
+
+function deletarCusto(id) {
+  if(!confirm('Deseja excluir este lançamento?')) return;
+  STORE.custos = STORE.custos.filter(c => c.id !== id);
+  saveStore('custos');
+  loadCustos();
+  notify('Registro excluído.');
+}
+
+// ===== RATEIO =====
+function setRateioPeriod(period, btn) {
+  btn.closest('.period-select').querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  rateioPeriod = period;
+  loadRateio();
+}
+
+function loadRateio() {
+  const custos = filterByPeriod([...STORE.custos], rateioPeriod);
+  const ovos = filterByPeriod([...STORE.ovos], rateioPeriod);
+  
+  const totalCustos = custos.reduce((s,c) => s + (c.valor||0), 0);
+  const totalOvos = ovos.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
+  const aves = getLoteAves();
+  const dias = rateioPeriod === 'semana' ? 7 : rateioPeriod === 'mes' ? 30 : 365;
+  
+  const custoAve = aves > 0 ? totalCustos / aves : 0;
+  const custoOvo = totalOvos > 0 ? totalCustos / totalOvos : 0;
+  const produtividade = aves > 0 && dias > 0 ? ((totalOvos / aves / dias) * 100).toFixed(1) : 0;
+  
+  document.getElementById('r-total').textContent = fmtMoeda(totalCustos);
+  document.getElementById('r-aves').textContent = aves.toLocaleString('pt-BR');
+  document.getElementById('r-ovos').textContent = totalOvos.toLocaleString('pt-BR');
+  document.getElementById('r-custo-ave').textContent = fmtMoeda(custoAve);
+  document.getElementById('r-custo-ovo').textContent = fmtMoeda(custoOvo);
+  document.getElementById('r-produtividade').textContent = produtividade + '%';
+  
+  const byCat = {};
+  custos.forEach(c => {
+    byCat[c.categoria] = (byCat[c.categoria] || 0) + (c.valor||0);
+  });
+  
+  const tb = document.getElementById('tb-rateio');
+  const rows = Object.entries(byCat).sort((a,b) => b[1]-a[1]).map(([cat, val]) => {
+    const pct = totalCustos > 0 ? ((val/totalCustos)*100).toFixed(1) : 0;
+    const cAve = aves > 0 ? val/aves : 0;
+    const cOvo = totalOvos > 0 ? val/totalOvos : 0;
+    return `<tr>
+      <td><span class="badge badge-verde">${cat}</span></td>
+      <td class="font-mono fw-600">${fmtMoeda(val)}</td>
+      <td>${pct}%</td>
+      <td class="font-mono">${fmtMoeda(cAve)}</td>
+      <td class="font-mono">${fmtMoeda(cOvo)}</td>
+    </tr>`;
+  });
+  
+  rows.push(`<tr class="total-row">
+    <td><b>TOTAL</b></td>
+    <td class="font-mono">${fmtMoeda(totalCustos)}</td>
+    <td>100%</td>
+    <td class="font-mono">${fmtMoeda(custoAve)}</td>
+    <td class="font-mono">${fmtMoeda(custoOvo)}</td>
+  </tr>`);
+  
+  tb.innerHTML = rows.join('') || '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">Sem dados</td></tr>';
+  
+  buildPizzaChart(byCat, totalCustos);
+}
+
+function buildPizzaChart(byCat, total) {
+  const container = document.getElementById('grafico-pizza');
+  if(!container) return;
+  
+  const colors = ['#1a7a4a','#f0b429','#2980b9','#8e44ad','#e67e22','#c0392b','#27ae60'];
+  const entries = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
+  
+  if(entries.length === 0) {
+    container.innerHTML = '<div class="empty-state"><i class="fa fa-chart-pie"></i><p>Sem dados</p></div>';
+    return;
+  }
+  
+  let bars = entries.map(([cat, val], i) => {
+    const pct = total > 0 ? ((val/total)*100).toFixed(1) : 0;
+    const w = total > 0 ? Math.max(4, (val/total)*100) : 0;
+    return `
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px">
+          <span style="color:var(--cinza-5)">${cat}</span>
+          <span class="font-mono fw-600">${pct}%</span>
+        </div>
+        <div style="background:var(--cinza-2);border-radius:4px;height:10px;overflow:hidden">
+          <div style="width:${w}%;background:${colors[i%colors.length]};height:100%;border-radius:4px;transition:width 0.4s"></div>
+        </div>
+      </div>`;
+  }).join('');
+  
+  container.innerHTML = `<div style="overflow-y:auto;max-height:200px">${bars}</div>`;
+}
+
+// ===== RELATÓRIOS =====
+function gerarRelatorio() {
+  const inicio = document.getElementById('rel-inicio').value;
+  const fim = document.getElementById('rel-fim').value;
+  const tipo = document.getElementById('rel-tipo').value;
+  
+  if(!inicio || !fim) { notify('Informe o período', 'error'); return; }
+  
+  const lote = getActiveLote();
+  const custos = STORE.custos.filter(c => c.data >= inicio && c.data <= fim);
+  const ovos = STORE.ovos.filter(o => o.data >= inicio && o.data <= fim);
+  const mort = STORE.mortalidade.filter(m => m.data >= inicio && m.data <= fim);
+  const racao = STORE.racao.filter(r => r.data >= inicio && r.data <= fim);
+  
+  const totalCustos = custos.reduce((s,c) => s + (c.valor||0), 0);
+  const totalOvos = ovos.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
+  const avesInicial = lote ? lote.qtdInicial : 0;
+  const totalMort = mort.reduce((s,m) => s + (m.qtd||0), 0);
+  const avesFinais = avesInicial - totalMort;
+  const totalRacaoKg = racao.reduce((s,r) => s + (r.racaoKg||0), 0);
+  const totalAguaL = racao.reduce((s,r) => s + (r.aguaLitros||0), 0);
+  
+  const byCat = {};
+  custos.forEach(c => { byCat[c.categoria] = (byCat[c.categoria]||0) + (c.valor||0); });
+  
+  const idade = calcularIdadeLote();
+  
+  const html = `
+    <div style="font-family:'Sora',sans-serif;">
+      <div style="text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--cinza-2)">
+        <div style="font-size:22px;font-weight:700;color:var(--verde-escuro)">🥚 OVONORTE</div>
+        <div style="font-size:13px;color:var(--cinza-4);margin-top:4px">Relatório de Avicultura — ${tipo.toUpperCase()}</div>
+        <div style="font-size:12px;color:var(--cinza-4)">Período: ${fmtData(inicio)} a ${fmtData(fim)}</div>
+        <div style="font-size:11px;color:var(--cinza-4);margin-top:2px">Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+      </div>
+
+      <div style="background:var(--verde-bg);padding:12px;border-radius:12px;margin-bottom:20px;text-align:center">
+        <strong>${lote?.nome || 'Lote'}</strong> — Raça: ${lote?.raca || '—'} | 
+        Nascimento: ${fmtData(lote?.nascimento)} | Idade: ${idade ? `${idade.semanas} semanas` : '—'}
+      </div>
+
+      <h3 style="font-size:14px;font-weight:700;color:var(--verde-escuro);margin-bottom:12px">📊 RESUMO EXECUTIVO</h3>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+        ${[
+          ['Aves (início)', avesInicial.toLocaleString('pt-BR')],
+          ['Aves (fim)', avesFinais.toLocaleString('pt-BR')],
+          ['Ovos Produzidos', totalOvos.toLocaleString('pt-BR')],
+          ['Total de Custos', fmtMoeda(totalCustos)],
+          ['Custo por Ave', avesFinais>0?fmtMoeda(totalCustos/avesFinais):'—'],
+          ['Custo por Ovo', totalOvos>0?fmtMoeda(totalCustos/totalOvos):'—']
+        ].map(([l,v]) => `<div style="background:var(--cinza-1);padding:12px;border-radius:8px">
+          <div style="font-size:11px;color:var(--cinza-4);margin-bottom:4px">${l}</div>
+          <div style="font-size:16px;font-weight:700">${v}</div>
+        </div>`).join('')}
+      </div>
+
+      <h3 style="font-size:14px;font-weight:700;color:var(--verde-escuro);margin-bottom:10px">💰 CUSTOS POR CATEGORIA</h3>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px">
+        <thead><tr style="background:var(--verde-escuro);color:white">
+          <th style="padding:8px 12px;text-align:left">Categoria</th>
+          <th style="padding:8px 12px;text-align:right">Valor</th>
+          <th style="padding:8px 12px;text-align:right">%</th>
+          <th style="padding:8px 12px;text-align:right">Custo/Ave</th>
+          <th style="padding:8px 12px;text-align:right">Custo/Ovo</th>
+         </tr></thead>
+        <tbody>
+          ${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,val],i) => `
+            <tr style="background:${i%2?'var(--cinza-1)':'white'}">
+              <td style="padding:8px 12px">${cat}</td>
+              <td style="padding:8px 12px;text-align:right;font-family:monospace">${fmtMoeda(val)}</td>
+              <td style="padding:8px 12px;text-align:right">${totalCustos>0?((val/totalCustos)*100).toFixed(1):0}%</td>
+              <td style="padding:8px 12px;text-align:right;font-family:monospace">${avesFinais>0?fmtMoeda(val/avesFinais):'—'}</td>
+              <td style="padding:8px 12px;text-align:right;font-family:monospace">${totalOvos>0?fmtMoeda(val/totalOvos):'—'}</td>
+             </tr>`).join('')}
+          <tr style="background:var(--verde-bg);font-weight:700">
+            <td style="padding:8px 12px">TOTAL GERAL</td>
+            <td style="padding:8px 12px;text-align:right;font-family:monospace">${fmtMoeda(totalCustos)}</td>
+            <td style="padding:8px 12px;text-align:right">100%</td>
+            <td style="padding:8px 12px;text-align:right;font-family:monospace">${avesFinais>0?fmtMoeda(totalCustos/avesFinais):'—'}</td>
+            <td style="padding:8px 12px;text-align:right;font-family:monospace">${totalOvos>0?fmtMoeda(totalCustos/totalOvos):'—'}</td>
+           </tr>
+        </tbody>
+       </table>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div>
+          <h3 style="font-size:14px;font-weight:700;color:var(--verde-escuro);margin-bottom:10px">🥚 PRODUÇÃO DE OVOS</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <tr><td style="padding:6px;color:var(--cinza-5)">Total produzido</td><td style="text-align:right;font-weight:600">${totalOvos.toLocaleString('pt-BR')} unid.</td></tr>
+            <tr style="background:var(--cinza-1)"><td style="padding:6px;color:var(--cinza-5)">Ovos/dia (média)</td><td style="text-align:right;font-weight:600">${(totalOvos/Math.max(1, (new Date(fim)-new Date(inicio))/(24*3600*1000)+1)).toFixed(0)}</td></tr>
+            <tr><td style="padding:6px;color:var(--cinza-5)">Ovos/ave/dia</td><td style="text-align:right;font-weight:600">${avesFinais>0?(totalOvos/avesFinais/Math.max(1,(new Date(fim)-new Date(inicio))/(24*3600*1000)+1)*100).toFixed(1)+'%':'—'}</td></tr>
+           </table>
+        </div>
+        <div>
+          <h3 style="font-size:14px;font-weight:700;color:var(--verde-escuro);margin-bottom:10px">🌾 CONSUMO</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <tr><td style="padding:6px;color:var(--cinza-5)">Ração total</td><td style="text-align:right;font-weight:600">${totalRacaoKg.toFixed(1)} kg</td></tr>
+            <tr style="background:var(--cinza-1)"><td style="padding:6px;color:var(--cinza-5)">Ração/ave</td><td style="text-align:right;font-weight:600">${avesFinais>0?(totalRacaoKg/avesFinais).toFixed(2)+' kg':'—'}</td></tr>
+            <tr><td style="padding:6px;color:var(--cinza-5)">Água total</td><td style="text-align:right;font-weight:600">${totalAguaL.toFixed(1)} L</td></tr>
+           </table>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;padding:12px;background:var(--cinza-1);border-radius:8px;font-size:11px;color:var(--cinza-4);text-align:center">
+        OVONORTE — Sistema de Gestão Avícola | Relatório gerado automaticamente
+      </div>
+    </div>`;
+  
+  document.getElementById('relatorio-preview').style.display = 'block';
+  document.getElementById('relatorio-body').innerHTML = html;
+  notify('Relatório gerado com sucesso!');
+}
+
+// ===== USUÁRIOS =====
+function loadUsuarios() {
+  const tb = document.getElementById('tb-usuarios');
+  const funcaoLabel = { diretor: 'Diretor', gerente: 'Gerente', colaborador: 'Colaborador' };
+  tb.innerHTML = STORE.users.map(u => `
+    <tr>
+      <td class="fw-600">${u.nome}</td>
+      <td class="text-sm">${u.email}</td>
+      <td><span class="badge ${u.funcao==='diretor'?'badge-vermelho':u.funcao==='gerente'?'badge-amarelo':'badge-verde'}">${funcaoLabel[u.funcao]||u.funcao}</span></td>
+      <td><span class="badge badge-verde">Ativo</span></td>
+    </tr>`).join('') || '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px">Nenhum usuário</td></tr>';
+}
+
+async function cadastrarUsuario() {
+  const funcao = currentUserData?.funcao;
+  if(funcao !== 'diretor' && funcao !== 'gerente') {
+    notify('Sem permissão para cadastrar usuários.', 'error'); return;
+  }
+  
+  const nome = document.getElementById('usr-nome').value.trim();
+  const email = document.getElementById('usr-email').value.trim();
+  const senha = document.getElementById('usr-senha').value;
+  const novaFuncao = document.getElementById('usr-funcao').value;
+  const setor = document.getElementById('usr-setor').value;
+  
+  if(!nome || !email || !senha) { notify('Preencha todos os campos', 'error'); return; }
+  if(senha.length < 6) { notify('Senha mínima: 6 caracteres', 'error'); return; }
+  
+  if(funcao === 'gerente' && novaFuncao !== 'colaborador') {
+    notify('Gerentes só podem cadastrar colaboradores.', 'error'); return;
+  }
+  
+  if(STORE.users.find(u => u.email === email)) {
+    notify('E-mail já cadastrado.', 'error'); return;
+  }
+  
+  STORE.users.push({
+    uid: 'usr_'+Date.now(), email, nome, funcao: novaFuncao, setor, senha, ativo: true,
+    criadoPor: currentUser.uid, criadoEm: new Date().toISOString()
+  });
+  saveStore('users');
+  
+  notify('Usuário cadastrado!');
+  document.getElementById('usr-nome').value = '';
+  document.getElementById('usr-email').value = '';
+  document.getElementById('usr-senha').value = '';
+  document.getElementById('usr-setor').value = '';
+  loadUsuarios();
+}
+
+// ===== LOTES =====
+function loadLotes() {
+  const tb = document.getElementById('tb-lotes');
+  tb.innerHTML = STORE.lotes.map(l => {
+    const idade = l.nascimento ? calcularIdadeLoteData(l.nascimento) : null;
+    return `
+      <tr>
+        <td class="fw-600">${l.nome}</td>
+        <td>${l.raca||'—'}</td>
+        <td>${fmtData(l.nascimento)}</td>
+        <td>${idade ? `${idade.semanas}s` : '—'}</td>
+        <td class="font-mono">${(l.qtdInicial||0).toLocaleString('pt-BR')}</td>
+        <td>
+          <button onclick="toggleLote('${l.id}')" class="badge ${l.ativo?'badge-verde':'badge-amarelo'}" style="border:none;cursor:pointer">
+            ${l.ativo ? 'Ativo' : 'Inativo'}
+          </button>
+         </td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px">Nenhum lote</td></tr>';
+}
+
+function calcularIdadeLoteData(dataNascimento) {
+  if(!dataNascimento) return null;
+  const nascimento = new Date(dataNascimento);
+  const hoje = new Date();
+  const diffTime = Math.abs(hoje - nascimento);
+  const diffDias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const semanas = Math.floor(diffDias / 7);
+  return { dias: diffDias, semanas };
+}
+
+function toggleLote(id) {
+  STORE.lotes.forEach(l => l.ativo = false);
+  const lote = STORE.lotes.find(l => l.id === id);
+  if(lote) lote.ativo = true;
+  saveStore('lotes');
+  loadLotes();
+  loadDashboard();
+  atualizarIndicadorIdade();
+  notify('Lote ativo alterado com sucesso!');
+}
+
+function salvarLote() {
+  const nome = document.getElementById('lote-nome').value;
+  if(!nome) { notify('Informe o nome do lote', 'error'); return; }
+  
+  const lote = {
+    id: 'lote_'+Date.now(),
+    nome,
+    raca: document.getElementById('lote-raca').value,
+    nascimento: document.getElementById('lote-nasc').value,
+    postura: document.getElementById('lote-postura').value,
+    qtdInicial: parseInt(document.getElementById('lote-qtd').value) || 0,
+    custo: parseFloat(document.getElementById('lote-custo').value) || 0,
+    obs: document.getElementById('lote-obs').value,
+    ativo: STORE.lotes.length === 0,
+    criadoPor: currentUser?.uid,
+    criadoEm: new Date().toISOString()
+  };
+  
+  STORE.lotes.push(lote);
+  saveStore('lotes');
+  
+  if(lote.custo > 0) addCustoAuto('outros', lote.nascimento || new Date().toISOString().split('T')[0], 'Aquisição de aves - '+nome, lote.custo, 'fixo', lote.id);
+  
+  notify('Lote cadastrado!');
+  document.getElementById('lote-nome').value = '';
+  document.getElementById('lote-raca').value = '';
+  document.getElementById('lote-qtd').value = '';
+  document.getElementById('lote-custo').value = '';
+  document.getElementById('lote-obs').value = '';
+  loadLotes();
+}
+
+document.addEventListener('keydown', function(e) {
+  if(e.key === 'Enter' && document.getElementById('auth-screen').style.display !== 'none') {
+    doLogin();
+  }
+});
+</script>
+</body>
+</html>
