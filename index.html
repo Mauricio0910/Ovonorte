@@ -19,7 +19,6 @@
   --vermelho: #c0392b;
   --cinza-1: #f5f5f5;
   --cinza-2: #ddd;
-  --cinza-3: #ccc;
   --branco: #fff;
 }
 
@@ -130,8 +129,59 @@ body {
 .card h3 {
   margin-bottom: 16px;
   color: var(--verde-escuro);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--verde-bg);
 }
 
+/* Formulários - Layout vertical */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo label {
+  font-weight: 600;
+  color: var(--verde-escuro);
+  font-size: 14px;
+}
+
+.campo input, .campo select, .campo textarea {
+  padding: 12px;
+  border: 1px solid var(--cinza-2);
+  border-radius: 8px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.campo input:focus, .campo select:focus, .campo textarea:focus {
+  outline: none;
+  border-color: var(--verde);
+}
+
+.btn-primary {
+  background: var(--verde);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.btn-primary:hover {
+  background: var(--verde-escuro);
+}
+
+/* KPIs */
 .kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -161,24 +211,6 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-}
-
-form input, form select, form textarea {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border: 1px solid var(--cinza-2);
-  border-radius: 8px;
-}
-
-button {
-  background: var(--verde);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 10px;
 }
 
 table {
@@ -236,6 +268,19 @@ th, td {
     flex-direction: column;
   }
 }
+
+.rateio-box {
+  background: var(--verde-bg);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.rateio-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
 </style>
 </head>
 <body>
@@ -260,7 +305,7 @@ th, td {
       <h2 id="tituloPagina">OVONORTE</h2>
       <div class="badge" id="infoAves">Carregando...</div>
     </div>
-    <button onclick="fazerLogout()" style="background:#c0392b;">Sair</button>
+    <button onclick="fazerLogout()" style="background:#c0392b; padding:8px 16px;">Sair</button>
   </div>
   
   <div class="menuSuperior" id="menuSuperior"></div>
@@ -289,7 +334,6 @@ let db = {
   custos: []
 };
 
-// Carregar dados salvos
 function carregarDB() {
   const saved = localStorage.getItem('ovonorte_db');
   if (saved) {
@@ -302,7 +346,6 @@ function carregarDB() {
     if (p.custos) db.custos = p.custos;
   }
   
-  // Dados iniciais
   if (db.aves.length === 0) {
     db.aves.push({
       id: '1',
@@ -339,10 +382,6 @@ function salvarDB() {
     custos: db.custos
   }));
 }
-
-// ============================================
-// FUNÇÕES ÚTEIS
-// ============================================
 
 function totalAves() {
   let total = 0;
@@ -403,17 +442,12 @@ function fazerLogout() {
   document.getElementById('loginScreen').style.display = 'flex';
 }
 
-// ============================================
-// INICIAR APP
-// ============================================
-
 function iniciarApp() {
   carregarDB();
   
   let aves = totalAves();
   document.getElementById('infoAves').innerHTML = `🐔 ${aves} aves`;
   
-  // Menu
   let menu = document.getElementById('menuSuperior');
   let paginas = ['dashboard', 'aves', 'ovos', 'racao', 'medicacao', 'mortalidade', 'custos', 'custo-unitario', 'relatorios'];
   let nomes = ['Dashboard', 'Aves', 'Ovos', 'Ração', 'Medicação', 'Mortalidade', 'Custos', 'Custo Unitário', 'Relatórios'];
@@ -431,13 +465,9 @@ function iniciarApp() {
   mostrarPagina('dashboard');
 }
 
-// ============================================
-// NAVEGAÇÃO
-// ============================================
-
 function mostrarPagina(pagina) {
   document.querySelectorAll('#menuSuperior button').forEach(btn => btn.classList.remove('ativo'));
-  event?.target?.classList.add('ativo');
+  if (event && event.target) event.target.classList.add('ativo');
   
   let titulos = {
     dashboard: 'Dashboard',
@@ -506,17 +536,24 @@ function renderAves(container) {
     <div class="grid2">
       <div class="card">
         <h3>➕ Registrar Movimentação</h3>
-        <label>Data</label><input type="date" id="aveData" value="${new Date().toISOString().split('T')[0]}">
-        <label>Tipo</label><select id="aveTipo"><option value="entrada">Entrada (Novas Aves)</option><option value="saida">Saída (Venda)</option></select>
-        <label>Quantidade</label><input type="number" id="aveQtd" min="1">
-        <label>Observação</label><textarea id="aveObs" rows="2"></textarea>
-        <button onclick="salvarAve()">Registrar</button>
+        <div class="formulario">
+          <div class="campo"><label>Data</label><input type="date" id="aveData" value="${new Date().toISOString().split('T')[0]}"></div>
+          <div class="campo"><label>Tipo</label><select id="aveTipo"><option value="entrada">Entrada (Novas Aves)</option><option value="saida">Saída (Venda)</option></select></div>
+          <div class="campo"><label>Quantidade</label><input type="number" id="aveQtd" min="1"></div>
+          <div class="campo"><label>Observação</label><textarea id="aveObs" rows="2"></textarea></div>
+          <button class="btn-primary" onclick="salvarAve()">Registrar Movimentação</button>
+        </div>
       </div>
       <div class="card">
         <h3>📋 Histórico</h3>
-        <table><thead><tr><th>Data</th><th>Tipo</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>
-          ${lista.map(a => `<tr><td>${formatarData(a.data)}</td><td>${a.tipo === 'entrada' ? '➕ Entrada' : '➖ Saída'}</td><td>${a.quantidade}</td><td>${a.obs || '—'}</td></tr>`).join('')}
-        </tbody></table>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Data</th><th>Tipo</th><th>Qtd</th><th>Obs</th></tr></thead>
+            <tbody>
+              ${lista.map(a => `<tr><td>${formatarData(a.data)}</td><td>${a.tipo === 'entrada' ? '➕ Entrada' : '➖ Saída'}</td><td>${a.quantidade}</td><td>${a.obs || '—'}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
         <p style="margin-top:16px;"><strong>Total atual:</strong> ${totalAves()} aves</p>
       </div>
     </div>
@@ -536,7 +573,7 @@ function salvarAve() {
 }
 
 // ============================================
-// OVOS
+// OVOS - Formulário vertical
 // ============================================
 
 function renderOvos(container) {
@@ -547,17 +584,24 @@ function renderOvos(container) {
     <div class="grid2">
       <div class="card">
         <h3>📝 Registrar Coleta</h3>
-        <label>Data</label><input type="date" id="ovoData" value="${hoje}">
-        <label>Ovos Inteiros</label><input type="number" id="ovoInteiros" value="0">
-        <label>Ovos Trincados</label><input type="number" id="ovoTrincados" value="0">
-        <label>Observações</label><textarea id="ovoObs" rows="2"></textarea>
-        <button onclick="salvarOvo()">Registrar</button>
+        <div class="formulario">
+          <div class="campo"><label>Data da Coleta</label><input type="date" id="ovoData" value="${hoje}"></div>
+          <div class="campo"><label>Ovos Inteiros</label><input type="number" id="ovoInteiros" value="0" min="0"></div>
+          <div class="campo"><label>Ovos Trincados</label><input type="number" id="ovoTrincados" value="0" min="0"></div>
+          <div class="campo"><label>Observações</label><textarea id="ovoObs" rows="3" placeholder="Observações sobre a coleta..."></textarea></div>
+          <button class="btn-primary" onclick="salvarOvo()">Registrar Coleta</button>
+        </div>
       </div>
       <div class="card">
-        <h3>📋 Histórico</h3>
-        <table><thead><tr><th>Data</th><th>Inteiros</th><th>Trincados</th><th>Total</th></tr></thead><tbody>
-          ${lista.map(o => `<tr><td>${formatarData(o.data)}</td><td>${o.inteiros}</td><td>${o.trincados}</td><td><strong>${o.inteiros + o.trincados}</strong></td></tr>`).join('')}
-        </tbody></table>
+        <h3>📋 Histórico de Coletas</h3>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Data</th><th>Inteiros</th><th>Trincados</th><th>Total</th></tr></thead>
+            <tbody>
+              ${lista.map(o => `<tr><td>${formatarData(o.data)}</td><td>${o.inteiros}</td><td>${o.trincados}</td><td><strong>${o.inteiros + o.trincados}</strong></td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -568,15 +612,18 @@ function salvarOvo() {
   let inteiros = parseInt(document.getElementById('ovoInteiros').value) || 0;
   let trincados = parseInt(document.getElementById('ovoTrincados').value) || 0;
   let obs = document.getElementById('ovoObs').value;
-  if (inteiros + trincados === 0) return notificar('Informe quantidade');
+  if (inteiros + trincados === 0) return notificar('Informe a quantidade de ovos');
   db.ovos.push({ id: Date.now().toString(), data, inteiros, trincados, obs });
   salvarDB();
-  notificar('Coleta registrada');
+  notificar('Coleta registrada com sucesso!');
+  document.getElementById('ovoInteiros').value = '0';
+  document.getElementById('ovoTrincados').value = '0';
+  document.getElementById('ovoObs').value = '';
   mostrarPagina('ovos');
 }
 
 // ============================================
-// RAÇÃO
+// RAÇÃO - Formulário vertical
 // ============================================
 
 function renderRacao(container) {
@@ -587,24 +634,35 @@ function renderRacao(container) {
   container.innerHTML = `
     <div class="grid2">
       <div class="card">
-        <h3>🌾 Lançar Consumo (Rateio)</h3>
-        <div class="badge">📊 Rateio para ${aves} aves</div>
-        <label>Data</label><input type="date" id="raData" value="${hoje}">
-        <label>Ração (kg)</label><input type="number" id="raKg" step="0.1">
-        <label>Custo Ração (R$)</label><input type="number" id="raCusto" step="0.01">
-        <label>Água (L)</label><input type="number" id="aguaL" step="0.1">
-        <label>Custo Água (R$)</label><input type="number" id="aguaCusto" step="0.01">
-        <button onclick="salvarRacao()">Registrar</button>
+        <h3>🌾 Lançar Consumo (com Rateio)</h3>
+        <div class="rateio-box">
+          <div class="rateio-row"><strong>📊 Rateio para ${aves} aves</strong></div>
+          <div class="rateio-row">O custo será distribuído igualmente entre todas as aves ativas</div>
+        </div>
+        <div class="formulario">
+          <div class="campo"><label>Data do Consumo</label><input type="date" id="raData" value="${hoje}"></div>
+          <div class="campo"><label>Tipo de Ração</label><select id="raTipo"><option>Postura Fase 1</option><option>Postura Fase 2</option><option>Crescimento</option></select></div>
+          <div class="campo"><label>Quantidade de Ração (kg)</label><input type="number" id="raKg" step="0.1" value="0"></div>
+          <div class="campo"><label>Custo da Ração (R$)</label><input type="number" id="raCusto" step="0.01" value="0"></div>
+          <div class="campo"><label>Volume de Água (L)</label><input type="number" id="aguaL" step="0.1" value="0"></div>
+          <div class="campo"><label>Custo da Água (R$)</label><input type="number" id="aguaCusto" step="0.01" value="0"></div>
+          <button class="btn-primary" onclick="salvarRacao()">Registrar Consumo</button>
+        </div>
       </div>
       <div class="card">
-        <h3>📋 Histórico</h3>
-        <table><thead><tr><th>Data</th><th>Ração</th><th>Custo</th><th>Custo/Ave</th></tr></thead><tbody>
-          ${lista.map(r => {
-            let custoTotal = (r.raCusto||0) + (r.aguaCusto||0);
-            let custoPorAve = aves > 0 ? custoTotal/aves : 0;
-            return `<tr><td>${formatarData(r.data)}</td><td>${(r.raKg||0).toFixed(1)} kg</td><td>${formatarMoeda(custoTotal)}</td><td>${formatarMoeda(custoPorAve)}</td></tr>`;
-          }).join('')}
-        </tbody></table>
+        <h3>📋 Histórico de Consumo</h3>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Data</th><th>Ração</th><th>Custo</th><th>Custo/Ave</th></tr></thead>
+            <tbody>
+              ${lista.map(r => {
+                let custoTotal = (r.raCusto||0) + (r.aguaCusto||0);
+                let custoPorAve = aves > 0 ? custoTotal/aves : 0;
+                return `<tr><td>${formatarData(r.data)}</td><td>${(r.raKg||0).toFixed(1)} kg</td><td>${formatarMoeda(custoTotal)}</td><td>${formatarMoeda(custoPorAve)}</td></tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -612,6 +670,7 @@ function renderRacao(container) {
 
 function salvarRacao() {
   let data = document.getElementById('raData').value;
+  let raTipo = document.getElementById('raTipo').value;
   let raKg = parseFloat(document.getElementById('raKg').value) || 0;
   let raCusto = parseFloat(document.getElementById('raCusto').value) || 0;
   let aguaL = parseFloat(document.getElementById('aguaL').value) || 0;
@@ -619,22 +678,26 @@ function salvarRacao() {
   
   if (raKg === 0 && aguaL === 0) return notificar('Informe pelo menos um consumo');
   
-  db.racoes.push({ id: Date.now().toString(), data, raKg, raCusto, aguaL, aguaCusto });
+  db.racoes.push({ id: Date.now().toString(), data, tipo: raTipo, raKg, raCusto, aguaL, aguaCusto });
   
   if (raCusto > 0) {
-    db.custos.push({ id: Date.now().toString()+'_r', data, descricao: `Ração (${raKg}kg)`, valor: raCusto });
+    db.custos.push({ id: Date.now().toString()+'_r', data, descricao: `Ração ${raTipo} (${raKg}kg)`, valor: raCusto });
   }
   if (aguaCusto > 0) {
     db.custos.push({ id: Date.now().toString()+'_a', data, descricao: `Água (${aguaL}L)`, valor: aguaCusto });
   }
   
   salvarDB();
-  notificar('Consumo registrado');
+  notificar('Consumo registrado com sucesso!');
+  document.getElementById('raKg').value = '0';
+  document.getElementById('raCusto').value = '0';
+  document.getElementById('aguaL').value = '0';
+  document.getElementById('aguaCusto').value = '0';
   mostrarPagina('racao');
 }
 
 // ============================================
-// MEDICAÇÃO
+// MEDICAÇÃO - Formulário vertical
 // ============================================
 
 function renderMedicacao(container) {
@@ -644,18 +707,26 @@ function renderMedicacao(container) {
     <div class="grid2">
       <div class="card">
         <h3>💊 Registrar Medicação</h3>
-        <label>Data</label><input type="date" id="medData" value="${hoje}">
-        <label>Produto</label><input type="text" id="medProduto" placeholder="Nome do medicamento">
-        <label>Finalidade</label><select id="medFinalidade"><option>Antifúngico</option><option>Vacina</option><option>Antibiótico</option><option>Outro</option></select>
-        <label>Custo (R$)</label><input type="number" id="medCusto" step="0.01">
-        <label>Aves Tratadas</label><input type="number" id="medAves" placeholder="Deixe em branco para todas">
-        <button onclick="salvarMedicacao()">Registrar</button>
+        <div class="formulario">
+          <div class="campo"><label>Data da Aplicação</label><input type="date" id="medData" value="${hoje}"></div>
+          <div class="campo"><label>Produto</label><input type="text" id="medProduto" placeholder="Nome do medicamento"></div>
+          <div class="campo"><label>Finalidade</label><select id="medFinalidade"><option>Antifúngico</option><option>Vacina</option><option>Antibiótico</option><option>Vitaminas</option><option>Outro</option></select></div>
+          <div class="campo"><label>Custo Total (R$)</label><input type="number" id="medCusto" step="0.01"></div>
+          <div class="campo"><label>Aves Tratadas</label><input type="number" id="medAves" placeholder="Deixe em branco para todas"></div>
+          <div class="campo"><label>Observações</label><textarea id="medObs" rows="2" placeholder="Observações sobre a aplicação..."></textarea></div>
+          <button class="btn-primary" onclick="salvarMedicacao()">Registrar Medicação</button>
+        </div>
       </div>
       <div class="card">
-        <h3>📋 Histórico</h3>
-        <table><thead><tr><th>Data</th><th>Produto</th><th>Finalidade</th><th>Custo</th></tr></thead><tbody>
-          ${db.medicacoes.map(m => `<tr><td>${formatarData(m.data)}</td><td>${m.produto}</td><td>${m.finalidade}</td><td>${formatarMoeda(m.custo)}</td></tr>`).join('')}
-        </tbody></table>
+        <h3>📋 Histórico de Medicações</h3>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Data</th><th>Produto</th><th>Finalidade</th><th>Custo</th></tr></thead>
+            <tbody>
+              ${db.medicacoes.map(m => `<tr><td>${formatarData(m.data)}</td><td><strong>${m.produto}</strong></td><td>${m.finalidade}</td><td>${formatarMoeda(m.custo)}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -667,22 +738,26 @@ function salvarMedicacao() {
   let finalidade = document.getElementById('medFinalidade').value;
   let custo = parseFloat(document.getElementById('medCusto').value) || 0;
   let aves = parseInt(document.getElementById('medAves').value) || totalAves();
+  let obs = document.getElementById('medObs').value;
   
   if (!produto) return notificar('Informe o produto');
   
-  db.medicacoes.push({ id: Date.now().toString(), data, produto, finalidade, custo, aves });
+  db.medicacoes.push({ id: Date.now().toString(), data, produto, finalidade, custo, aves, obs });
   
   if (custo > 0) {
     db.custos.push({ id: Date.now().toString(), data, descricao: `Medicação: ${produto}`, valor: custo });
   }
   
   salvarDB();
-  notificar('Medicação registrada');
+  notificar('Medicação registrada com sucesso!');
+  document.getElementById('medProduto').value = '';
+  document.getElementById('medCusto').value = '';
+  document.getElementById('medObs').value = '';
   mostrarPagina('medicacao');
 }
 
 // ============================================
-// MORTALIDADE
+// MORTALIDADE - Formulário vertical
 // ============================================
 
 function renderMortalidade(container) {
@@ -695,18 +770,28 @@ function renderMortalidade(container) {
     <div class="grid2">
       <div class="card">
         <h3>⚠️ Registrar Mortalidade</h3>
-        <div class="badge">Mortalidade acumulada: ${totalMortes} aves (${perc}%)</div>
-        <label>Data</label><input type="date" id="mortData" value="${hoje}">
-        <label>Quantidade</label><input type="number" id="mortQtd" min="1">
-        <label>Causa</label><select id="mortCausa"><option>Doença</option><option>Estresse</option><option>Acidente</option><option>Outro</option></select>
-        <label>Observações</label><textarea id="mortObs" rows="2"></textarea>
-        <button onclick="salvarMortalidade()">Registrar</button>
+        <div class="rateio-box">
+          <div class="rateio-row"><strong>Mortalidade acumulada:</strong> ${totalMortes} aves (${perc}%)</div>
+          <div class="rateio-row"><strong>Aves atuais:</strong> ${aves}</div>
+        </div>
+        <div class="formulario">
+          <div class="campo"><label>Data da Ocorrência</label><input type="date" id="mortData" value="${hoje}"></div>
+          <div class="campo"><label>Quantidade de Aves Mortas</label><input type="number" id="mortQtd" min="1"></div>
+          <div class="campo"><label>Causa Provável</label><select id="mortCausa"><option>Doença</option><option>Estresse térmico</option><option>Acidente</option><option>Predador</option><option>Causa desconhecida</option></select></div>
+          <div class="campo"><label>Observações</label><textarea id="mortObs" rows="2" placeholder="Descreva os sintomas ou circunstâncias..."></textarea></div>
+          <button class="btn-primary" onclick="salvarMortalidade()">Registrar Mortalidade</button>
+        </div>
       </div>
       <div class="card">
-        <h3>📋 Histórico</h3>
-        <table><thead><tr><th>Data</th><th>Qtd</th><th>Causa</th></tr></thead><tbody>
-          ${db.mortalidades.map(m => `<tr><td>${formatarData(m.data)}</td><td><strong>${m.qtd}</strong></td><td>${m.causa || '—'}</td></tr>`).join('')}
-        </tbody></table>
+        <h3>📋 Histórico de Mortalidade</h3>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Data</th><th>Qtd</th><th>Causa</th></tr></thead>
+            <tbody>
+              ${db.mortalidades.map(m => `<tr><td>${formatarData(m.data)}</td><td><strong>${m.qtd}</strong></td><td>${m.causa || '—'}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -721,11 +806,13 @@ function salvarMortalidade() {
   db.mortalidades.push({ id: Date.now().toString(), data, qtd, causa, obs });
   salvarDB();
   notificar('Mortalidade registrada');
+  document.getElementById('mortQtd').value = '';
+  document.getElementById('mortObs').value = '';
   mostrarPagina('mortalidade');
 }
 
 // ============================================
-// CUSTOS
+// CUSTOS - Formulário vertical
 // ============================================
 
 function renderCustos(container) {
@@ -736,17 +823,26 @@ function renderCustos(container) {
   container.innerHTML = `
     <div class="grid2">
       <div class="card">
-        <h3>💰 Lançar Custo</h3>
-        <label>Data</label><input type="date" id="custoData" value="${hoje}">
-        <label>Descrição</label><input type="text" id="custoDesc" placeholder="Ex: Energia, Mão de obra...">
-        <label>Valor (R$)</label><input type="number" id="custoValor" step="0.01">
-        <button onclick="salvarCusto()">Registrar</button>
+        <h3>💰 Lançar Custo/Despesa</h3>
+        <div class="formulario">
+          <div class="campo"><label>Data do Gasto</label><input type="date" id="custoData" value="${hoje}"></div>
+          <div class="campo"><label>Categoria</label><select id="custoCat"><option>racao</option><option>agua</option><option>medicamento</option><option>energia</option><option>mao_de_obra</option><option>manutencao</option><option>outros</option></select></div>
+          <div class="campo"><label>Descrição</label><input type="text" id="custoDesc" placeholder="Descreva o gasto detalhadamente"></div>
+          <div class="campo"><label>Valor (R$)</label><input type="number" id="custoValor" step="0.01" placeholder="0,00"></div>
+          <div class="campo"><label>Fornecedor</label><input type="text" id="custoFornecedor" placeholder="Nome do fornecedor (opcional)"></div>
+          <button class="btn-primary" onclick="salvarCusto()">Registrar Custo</button>
+        </div>
       </div>
       <div class="card">
         <h3>📋 Últimos Custos (Total: ${formatarMoeda(total)})</h3>
-        <table><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>
-          ${lista.slice(0,20).map(c => `<tr><td>${formatarData(c.data)}</td><td>${c.descricao}</td><td>${formatarMoeda(c.valor)}</td></tr>`).join('')}
-        </tbody></table>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead>
+            <tbody>
+              ${lista.slice(0,20).map(c => `<tr><td>${formatarData(c.data)}</span></td><td><strong>${c.descricao}</strong></span></td><td class="kpi-valor" style="font-size:14px">${formatarMoeda(c.valor)}</span></td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -754,12 +850,17 @@ function renderCustos(container) {
 
 function salvarCusto() {
   let data = document.getElementById('custoData').value;
+  let cat = document.getElementById('custoCat').value;
   let desc = document.getElementById('custoDesc').value;
   let valor = parseFloat(document.getElementById('custoValor').value) || 0;
-  if (!desc || valor <= 0) return notificar('Preencha todos os campos');
-  db.custos.push({ id: Date.now().toString(), data, descricao: desc, valor });
+  let fornecedor = document.getElementById('custoFornecedor').value;
+  if (!desc || valor <= 0) return notificar('Preencha descrição e valor');
+  db.custos.push({ id: Date.now().toString(), data, categoria: cat, descricao: desc, valor, fornecedor });
   salvarDB();
-  notificar('Custo registrado');
+  notificar('Custo registrado com sucesso!');
+  document.getElementById('custoDesc').value = '';
+  document.getElementById('custoValor').value = '';
+  document.getElementById('custoFornecedor').value = '';
   mostrarPagina('custos');
 }
 
@@ -781,6 +882,11 @@ function renderCustoUnitario(container) {
       <div class="kpi"><div class="kpi-label">Aves</div><div class="kpi-valor">${aves}</div></div>
       <div class="kpi"><div class="kpi-label">Custo por Ave</div><div class="kpi-valor">${formatarMoeda(custoPorAve)}</div></div>
       <div class="kpi"><div class="kpi-label">Custo por Ovo</div><div class="kpi-valor">${formatarMoeda(custoPorOvo)}</div></div>
+    </div>
+    <div class="card">
+      <h3>📊 Análise de Custo Unitário</h3>
+      <p>Este módulo apresenta os custos médios por ave e por ovo com base em todos os registros históricos.</p>
+      <p style="margin-top:16px;"><strong>📌 Interpretação:</strong> O custo por ave considera todas as despesas (ração, água, medicação, etc.) dividido pelo número de aves ativas. O custo por ovo é o valor total gasto dividido pela produção total de ovos.</p>
     </div>
   `;
 }
@@ -804,13 +910,13 @@ function renderRelatorios(container) {
         <div class="kpi"><div class="kpi-label">Custo por Ave</div><div class="kpi-valor">${aves > 0 ? formatarMoeda(totalCustos/aves) : 'R$ 0'}</div></div>
         <div class="kpi"><div class="kpi-label">Custo por Ovo</div><div class="kpi-valor">${totalOvos > 0 ? formatarMoeda(totalCustos/totalOvos) : 'R$ 0'}</div></div>
       </div>
-      <button onclick="window.print()">🖨️ Imprimir Relatório</button>
+      <button class="btn-primary" onclick="window.print()" style="width:auto;">🖨️ Imprimir Relatório</button>
     </div>
   `;
 }
 
 // ============================================
-// USUÁRIOS
+// USUÁRIOS - Formulário vertical
 // ============================================
 
 function renderUsuarios(container) {
@@ -818,17 +924,24 @@ function renderUsuarios(container) {
     <div class="grid2">
       <div class="card">
         <h3>👤 Cadastrar Usuário</h3>
-        <label>Nome</label><input type="text" id="userNome" placeholder="Nome completo">
-        <label>E-mail</label><input type="email" id="userEmail" placeholder="email@exemplo.com">
-        <label>Senha</label><input type="password" id="userSenha" placeholder="Mínimo 6 caracteres">
-        <label>Função</label><select id="userFuncao"><option>colaborador</option><option>diretor</option></select>
-        <button onclick="salvarUsuario()">Cadastrar</button>
+        <div class="formulario">
+          <div class="campo"><label>Nome Completo</label><input type="text" id="userNome" placeholder="Nome completo"></div>
+          <div class="campo"><label>E-mail</label><input type="email" id="userEmail" placeholder="email@exemplo.com"></div>
+          <div class="campo"><label>Senha</label><input type="password" id="userSenha" placeholder="Mínimo 6 caracteres"></div>
+          <div class="campo"><label>Função</label><select id="userFuncao"><option value="colaborador">Colaborador</option><option value="diretor">Diretor</option></select></div>
+          <button class="btn-primary" onclick="salvarUsuario()">Cadastrar Usuário</button>
+        </div>
       </div>
       <div class="card">
-        <h3>📋 Usuários</h3>
-        <tr><thead><tr><th>Nome</th><th>E-mail</th><th>Função</th></tr></thead><tbody>
-          ${db.usuarios.map(u => `<tr><td>${u.nome}</span></td><td>${u.email}</td><td>${u.funcao}</span></tr>`).join('')}
-        </tbody></table>
+        <h3>📋 Usuários Cadastrados</h3>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Função</th></tr></thead>
+            <tbody>
+              ${db.usuarios.map(u => `<tr><td><strong>${u.nome}</strong></span></td><td>${u.email}</span></td><td>${u.funcao === 'diretor' ? '👑 Diretor' : '👤 Colaborador'}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -846,7 +959,10 @@ function salvarUsuario() {
   
   db.usuarios.push({ id: Date.now().toString(), nome, email, senha, funcao });
   salvarDB();
-  notificar('Usuário cadastrado');
+  notificar('Usuário cadastrado com sucesso!');
+  document.getElementById('userNome').value = '';
+  document.getElementById('userEmail').value = '';
+  document.getElementById('userSenha').value = '';
   mostrarPagina('usuarios');
 }
 
