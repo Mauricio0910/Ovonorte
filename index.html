@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OVONORTE - Sistema Completo de Gestão Avícola</title>
+<title>OVONORTE - Gestão Avícola</title>
 <style>
 * {
   margin: 0;
@@ -13,33 +13,23 @@
 
 :root {
   --verde: #1a7a4a;
-  --verde-claro: #22a35f;
   --verde-escuro: #0d5232;
   --verde-bg: #e8f5ee;
   --amarelo: #f0b429;
-  --amarelo-claro: #fcefc7;
   --vermelho: #c0392b;
-  --vermelho-claro: #fde8e6;
-  --cinza-1: #f8f9fa;
-  --cinza-2: #e9ecef;
-  --cinza-3: #dee2e6;
-  --cinza-4: #6c757d;
-  --cinza-5: #495057;
-  --branco: #ffffff;
-  --sombra: 0 2px 8px rgba(0,0,0,0.08);
-  --radius: 12px;
-  --sidebar: 260px;
+  --cinza-1: #f5f5f5;
+  --cinza-2: #ddd;
+  --cinza-3: #ccc;
+  --branco: #fff;
 }
 
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: Arial, sans-serif;
   background: var(--cinza-1);
-  font-size: 14px;
-  color: var(--cinza-5);
 }
 
 /* Login */
-#login-screen {
+#loginScreen {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--verde-escuro), var(--verde));
   display: flex;
@@ -53,35 +43,29 @@ body {
   z-index: 1000;
 }
 
-.login-card {
+.loginBox {
   background: var(--branco);
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 40px;
   width: 90%;
-  max-width: 400px;
+  max-width: 380px;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
-.login-card .icon {
-  font-size: 60px;
-  margin-bottom: 16px;
-}
-
-.login-card h1 {
+.loginBox h1 {
   color: var(--verde-escuro);
-  font-size: 24px;
+  margin: 10px 0;
 }
 
-.login-card input {
+.loginBox input {
   width: 100%;
   padding: 12px;
   margin: 10px 0;
-  border: 1px solid var(--cinza-3);
+  border: 1px solid var(--cinza-2);
   border-radius: 8px;
 }
 
-.login-card button {
+.loginBox button {
   width: 100%;
   padding: 12px;
   background: var(--verde);
@@ -90,17 +74,12 @@ body {
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
-  font-weight: 600;
   margin-top: 10px;
 }
 
-.login-card button:hover {
-  background: var(--verde-claro);
-}
-
-.error-msg {
+.erro {
   color: var(--vermelho);
-  background: var(--vermelho-claro);
+  background: #fde8e6;
   padding: 10px;
   border-radius: 8px;
   margin: 10px 0;
@@ -108,510 +87,153 @@ body {
 }
 
 /* App */
-#app-screen {
+#appScreen {
   display: none;
 }
 
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: var(--sidebar);
+.menuSuperior {
   background: var(--verde-escuro);
-  overflow-y: auto;
-  z-index: 100;
-}
-
-.sidebar-header {
-  padding: 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.sidebar-logo {
+  padding: 12px;
   display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.sidebar-logo .icon {
-  width: 40px;
-  height: 40px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-}
-
-.sidebar-logo h2 {
-  color: white;
-  font-size: 18px;
-}
-
-.sidebar-logo small {
-  color: rgba(255,255,255,0.5);
-  font-size: 10px;
-}
-
-.sidebar-nav {
-  padding: 16px 12px;
-}
-
-.nav-section {
-  margin-bottom: 16px;
-}
-
-.nav-section-title {
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.4);
-  text-transform: uppercase;
-  padding: 8px 8px 4px;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  color: rgba(255,255,255,0.7);
-  cursor: pointer;
-  margin-bottom: 2px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.nav-item:hover, .nav-item.active {
-  background: rgba(255,255,255,0.15);
-  color: white;
-}
-
-.nav-item.active i {
-  color: var(--amarelo);
-}
-
-.sidebar-user {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  background: var(--verde-escuro);
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  background: var(--amarelo);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: var(--verde-escuro);
-}
-
-.user-name {
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.user-role {
-  color: rgba(255,255,255,0.6);
-  font-size: 11px;
-}
-
-.btn-logout {
-  width: 100%;
-  padding: 8px;
-  background: rgba(255,255,255,0.1);
-  border: none;
-  border-radius: 8px;
-  color: rgba(255,255,255,0.7);
-  cursor: pointer;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.main-content {
-  margin-left: var(--sidebar);
-  min-height: 100vh;
-}
-
-.topbar {
-  background: white;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--cinza-2);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   position: sticky;
   top: 0;
-  z-index: 50;
 }
 
-.topbar h1 {
-  font-size: 20px;
-  font-weight: 700;
+.menuSuperior button {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.menuSuperior button:hover, .menuSuperior button.ativo {
+  background: var(--amarelo);
   color: var(--verde-escuro);
 }
 
-.topbar-meta {
-  font-size: 12px;
-  color: var(--cinza-4);
-  margin-top: 4px;
+.conteudo {
+  padding: 20px;
 }
 
-.content-area {
-  padding: 24px;
-}
-
-/* Cards */
 .card {
   background: white;
-  border-radius: var(--radius);
-  box-shadow: var(--sombra);
-  margin-bottom: 24px;
-}
-
-.card-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--cinza-2);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.card-body {
+  border-radius: 12px;
   padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* KPIs */
-.kpi-grid {
+.card h3 {
+  margin-bottom: 16px;
+  color: var(--verde-escuro);
+}
+
+.kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
-.kpi-card {
+.kpi {
   background: white;
-  border-radius: var(--radius);
-  padding: 20px;
-  box-shadow: var(--sombra);
+  border-radius: 12px;
+  padding: 15px;
   border-left: 4px solid var(--verde);
-  position: relative;
 }
-
-.kpi-card.amarelo { border-left-color: var(--amarelo); }
-.kpi-card.vermelho { border-left-color: var(--vermelho); }
-.kpi-card.azul { border-left-color: #3498db; }
 
 .kpi-label {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--cinza-4);
+  color: #888;
   text-transform: uppercase;
-  margin-bottom: 8px;
 }
 
-.kpi-value {
-  font-size: 28px;
-  font-weight: 700;
+.kpi-valor {
+  font-size: 24px;
+  font-weight: bold;
 }
 
-.kpi-sub {
-  font-size: 11px;
-  color: var(--cinza-4);
-  margin-top: 4px;
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-.kpi-icon {
-  position: absolute;
-  right: 16px;
-  top: 16px;
-  font-size: 32px;
-  opacity: 0.1;
+form input, form select, form textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid var(--cinza-2);
+  border-radius: 8px;
 }
 
-/* Tabelas */
-.data-table {
+button {
+  background: var(--verde);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.data-table th {
+th, td {
   text-align: left;
-  padding: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--cinza-4);
-  text-transform: uppercase;
-  border-bottom: 2px solid var(--cinza-2);
-}
-
-.data-table td {
-  padding: 12px;
+  padding: 10px;
   border-bottom: 1px solid var(--cinza-2);
 }
 
-.data-table tr:hover td {
-  background: var(--cinza-1);
-}
-
-/* Grids */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--cinza-5);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-
-.form-group input, .form-group select, .form-group textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--cinza-3);
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 14px;
-}
-
-/* Badges */
 .badge {
-  display: inline-block;
+  background: var(--verde-bg);
   padding: 4px 10px;
   border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.badge-verde {
-  background: var(--verde-bg);
-  color: var(--verde-escuro);
-}
-
-.badge-amarelo {
-  background: var(--amarelo-claro);
-  color: #8a6200;
-}
-
-.badge-vermelho {
-  background: var(--vermelho-claro);
-  color: var(--vermelho);
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-
-.tab-btn {
-  padding: 8px 16px;
-  background: var(--cinza-2);
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--cinza-5);
-}
-
-.tab-btn.active {
-  background: var(--verde);
-  color: white;
-}
-
-/* Rateio */
-.rateio-box {
-  background: var(--verde-bg);
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
-}
-
-.rateio-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.rateio-row:last-child {
-  border-bottom: none;
-}
-
-.rateio-label {
-  color: var(--cinza-5);
-}
-
-.rateio-value {
-  font-weight: 600;
-  color: var(--verde-escuro);
-  font-family: monospace;
-}
-
-/* Botões */
-.btn-primary {
-  background: var(--verde);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.btn-primary:hover {
-  background: var(--verde-claro);
-}
-
-.btn-secondary {
-  background: var(--cinza-2);
-  color: var(--cinza-5);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.btn-sm {
-  padding: 6px 12px;
   font-size: 12px;
 }
 
-/* Notificação */
-.notification {
+.pagina {
+  display: none;
+}
+
+.pagina.ativa {
+  display: block;
+}
+
+.topbar {
+  background: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--cinza-2);
+}
+
+.notificacao {
   position: fixed;
   bottom: 20px;
   right: 20px;
   background: white;
-  border-radius: 8px;
   padding: 12px 20px;
+  border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 2000;
-  transform: translateX(120%);
-  transition: transform 0.3s;
-}
-
-.notification.show {
-  transform: translateX(0);
-}
-
-.notification.success {
-  border-left: 4px solid var(--verde);
-}
-
-.notification.error {
-  border-left: 4px solid var(--vermelho);
-}
-
-/* Utilitários */
-.text-muted { color: var(--cinza-4); }
-.text-verde { color: var(--verde); }
-.text-vermelho { color: var(--vermelho); }
-.fw-600 { font-weight: 600; }
-.font-mono { font-family: monospace; }
-.mt-4 { margin-top: 16px; }
-.mb-4 { margin-bottom: 16px; }
-.flex { display: flex; }
-.gap-2 { gap: 8px; }
-.justify-between { justify-content: space-between; }
-.items-center { align-items: center; }
-
-/* Pages */
-.page {
   display: none;
+  z-index: 2000;
 }
 
-.page.active {
-  display: block;
-}
-
-/* Gráfico */
-.chart-container {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  justify-content: center;
-  height: 200px;
-}
-
-.chart-bar {
-  flex: 1;
-  text-align: center;
-}
-
-.chart-bar .bar {
-  background: var(--verde);
-  border-radius: 6px 6px 0 0;
-  transition: height 0.3s;
-}
-
-.chart-bar .label {
-  font-size: 11px;
-  margin-top: 8px;
-  color: var(--cinza-4);
-}
-
-/* Responsive */
 @media (max-width: 768px) {
-  .sidebar {
-    display: none;
-  }
-  .main-content {
-    margin-left: 0;
-  }
-  .grid-2, .grid-3 {
+  .grid2 {
     grid-template-columns: 1fr;
+  }
+  .menuSuperior {
+    flex-direction: column;
   }
 }
 </style>
@@ -619,94 +241,46 @@ body {
 <body>
 
 <!-- Tela de Login -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="icon">🥚</div>
+<div id="loginScreen">
+  <div class="loginBox">
+    <div style="font-size: 50px;">🥚</div>
     <h1>OVONORTE</h1>
     <p>Sistema de Gestão Avícola</p>
-    <div id="error-msg" class="error-msg"></div>
-    <input type="email" id="email" placeholder="E-mail">
-    <input type="password" id="senha" placeholder="Senha">
+    <div id="erroMsg" class="erro"></div>
+    <input type="text" id="emailInput" placeholder="E-mail" value="admin@ovonorte.com.br">
+    <input type="password" id="senhaInput" placeholder="Senha" value="admin123">
     <button onclick="fazerLogin()">Entrar</button>
   </div>
 </div>
 
 <!-- App Principal -->
-<div id="app-screen">
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">
-        <div class="icon">🥚</div>
-        <div><h2>OVONORTE</h2><small>Gestão Avícola</small></div>
-      </div>
+<div id="appScreen">
+  <div class="topbar">
+    <div>
+      <h2 id="tituloPagina">OVONORTE</h2>
+      <div class="badge" id="infoAves">Carregando...</div>
     </div>
-    <div class="sidebar-nav">
-      <div class="nav-section">
-        <div class="nav-section-title">Principal</div>
-        <div class="nav-item" data-page="dashboard"><i class="fa fa-tachometer-alt"></i> Dashboard</div>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-title">Gestão</div>
-        <div class="nav-item" data-page="aves"><i class="fa fa-feather"></i> Controle de Aves</div>
-        <div class="nav-item" data-page="ovos"><i class="fa fa-egg"></i> Coleta de Ovos</div>
-        <div class="nav-item" data-page="racao"><i class="fa fa-wheat-alt"></i> Ração e Água</div>
-        <div class="nav-item" data-page="medicacao"><i class="fa fa-syringe"></i> Medicação</div>
-        <div class="nav-item" data-page="mortalidade"><i class="fa fa-skull"></i> Mortalidade</div>
-        <div class="nav-item" data-page="custos"><i class="fa fa-dollar-sign"></i> Custos</div>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-title">Análises</div>
-        <div class="nav-item" data-page="custo-unitario"><i class="fa fa-chart-line"></i> Custo Unitário</div>
-        <div class="nav-item" data-page="relatorios"><i class="fa fa-file-alt"></i> Relatórios</div>
-      </div>
-      <div class="nav-section" id="admin-section" style="display:none">
-        <div class="nav-section-title">Administração</div>
-        <div class="nav-item" data-page="usuarios"><i class="fa fa-users"></i> Usuários</div>
-      </div>
-    </div>
-    <div class="sidebar-user">
-      <div class="user-info">
-        <div class="user-avatar" id="user-avatar">AD</div>
-        <div>
-          <div class="user-name" id="user-name">Usuário</div>
-          <div class="user-role" id="user-role">Função</div>
-        </div>
-      </div>
-      <button class="btn-logout" onclick="fazerLogout()"><i class="fa fa-sign-out-alt"></i> Sair</button>
-    </div>
+    <button onclick="fazerLogout()" style="background:#c0392b;">Sair</button>
   </div>
-
-  <div class="main-content">
-    <div class="topbar">
-      <div>
-        <h1 id="page-title">Dashboard</h1>
-        <div class="topbar-meta" id="page-meta">Visão geral do sistema</div>
-      </div>
-      <div class="badge badge-verde" id="lote-badge">Carregando...</div>
-    </div>
-    <div class="content-area" id="content-area"></div>
-  </div>
+  
+  <div class="menuSuperior" id="menuSuperior"></div>
+  
+  <div class="conteudo" id="conteudoArea"></div>
 </div>
 
-<div id="notification" class="notification">
-  <i class="fa fa-check-circle"></i>
-  <span id="notify-msg"></span>
-</div>
-
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<div id="notificacao" class="notificacao"></div>
 
 <script>
 // ============================================
-// SISTEMA OVONORTE - VERSÃO COMPLETA
+// DADOS
 // ============================================
 
 let usuarioAtual = null;
-let relatorioFiltro = 'periodo';
-let periodoUnitario = 'mes';
 
-let dados = {
-  usuarios: [],
+let db = {
+  usuarios: [
+    { id: '1', nome: 'Administrador', email: 'admin@ovonorte.com.br', senha: 'admin123', funcao: 'diretor' }
+  ],
   aves: [],
   ovos: [],
   racoes: [],
@@ -715,185 +289,172 @@ let dados = {
   custos: []
 };
 
-// ============================================
-// FUNÇÕES DE BANCO DE DADOS
-// ============================================
-
-function carregarDados() {
-  const saved = localStorage.getItem('ovonorte_completo');
+// Carregar dados salvos
+function carregarDB() {
+  const saved = localStorage.getItem('ovonorte_db');
   if (saved) {
-    const parsed = JSON.parse(saved);
-    dados.usuarios = parsed.usuarios || [];
-    dados.aves = parsed.aves || [];
-    dados.ovos = parsed.ovos || [];
-    dados.racoes = parsed.racoes || [];
-    dados.medicacoes = parsed.medicacoes || [];
-    dados.mortalidades = parsed.mortalidades || [];
-    dados.custos = parsed.custos || [];
-  }
-  
-  // Usuário padrão
-  if (dados.usuarios.length === 0) {
-    dados.usuarios.push({
-      id: '1',
-      nome: 'Administrador',
-      email: 'admin@ovonorte.com.br',
-      senha: 'admin123',
-      funcao: 'diretor'
-    });
+    const p = JSON.parse(saved);
+    if (p.aves) db.aves = p.aves;
+    if (p.ovos) db.ovos = p.ovos;
+    if (p.racoes) db.racoes = p.racoes;
+    if (p.medicacoes) db.medicacoes = p.medicacoes;
+    if (p.mortalidades) db.mortalidades = p.mortalidades;
+    if (p.custos) db.custos = p.custos;
   }
   
   // Dados iniciais
-  if (dados.aves.length === 0) {
-    dados.aves.push({
+  if (db.aves.length === 0) {
+    db.aves.push({
       id: '1',
       data: new Date().toISOString().split('T')[0],
       quantidade: 500,
       tipo: 'entrada',
-      observacao: 'Lote inicial'
+      obs: 'Lote inicial'
     });
   }
   
-  if (dados.ovos.length === 0) {
+  if (db.ovos.length === 0) {
     for (let i = 0; i < 30; i++) {
-      const data = new Date();
-      data.setDate(data.getDate() - i);
-      dados.ovos.push({
+      let d = new Date();
+      d.setDate(d.getDate() - i);
+      db.ovos.push({
         id: 'o'+i,
-        data: data.toISOString().split('T')[0],
+        data: d.toISOString().split('T')[0],
         inteiros: 400 + Math.floor(Math.random() * 80),
         trincados: Math.floor(Math.random() * 15)
       });
     }
   }
   
-  salvarDados();
+  salvarDB();
 }
 
-function salvarDados() {
-  localStorage.setItem('ovonorte_completo', JSON.stringify({
-    usuarios: dados.usuarios,
-    aves: dados.aves,
-    ovos: dados.ovos,
-    racoes: dados.racoes,
-    medicacoes: dados.medicacoes,
-    mortalidades: dados.mortalidades,
-    custos: dados.custos
+function salvarDB() {
+  localStorage.setItem('ovonorte_db', JSON.stringify({
+    aves: db.aves,
+    ovos: db.ovos,
+    racoes: db.racoes,
+    medicacoes: db.medicacoes,
+    mortalidades: db.mortalidades,
+    custos: db.custos
   }));
 }
 
 // ============================================
-// FUNÇÕES AUXILIARES
+// FUNÇÕES ÚTEIS
 // ============================================
 
-function getTotalAves() {
+function totalAves() {
   let total = 0;
-  dados.aves.forEach(a => {
+  db.aves.forEach(a => {
     if (a.tipo === 'entrada') total += a.quantidade;
-    else if (a.tipo === 'saida') total -= a.quantidade;
+    else total -= a.quantidade;
   });
-  const mortes = dados.mortalidades.reduce((s, m) => s + (m.qtd || 0), 0);
+  let mortes = 0;
+  db.mortalidades.forEach(m => mortes += m.qtd);
   return Math.max(0, total - mortes);
 }
 
-function getTotalOvos() {
-  return dados.ovos.reduce((s, o) => s + (o.inteiros || 0) + (o.trincados || 0), 0);
+function formatarMoeda(v) {
+  return 'R$ ' + (v || 0).toFixed(2).replace('.', ',');
 }
 
-function getTotalCustos() {
-  return dados.custos.reduce((s, c) => s + (c.valor || 0), 0);
+function formatarData(d) {
+  if (!d) return '—';
+  let p = d.split('-');
+  return `${p[2]}/${p[1]}/${p[0]}`;
 }
 
-function formatarMoeda(valor) {
-  if (isNaN(valor)) return 'R$ 0,00';
-  return 'R$ ' + valor.toFixed(2).replace('.', ',');
-}
-
-function formatarData(data) {
-  if (!data) return '—';
-  const partes = data.split('-');
-  if (partes.length !== 3) return data;
-  return `${partes[2]}/${partes[1]}/${partes[0]}`;
-}
-
-function mostrarNotificacao(msg, tipo = 'success') {
-  const notif = document.getElementById('notification');
-  const icon = tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-  notif.querySelector('i').className = `fa ${icon}`;
-  notif.querySelector('span').textContent = msg;
-  notif.classList.add('show');
-  setTimeout(() => notif.classList.remove('show'), 3000);
+function notificar(msg) {
+  let n = document.getElementById('notificacao');
+  n.textContent = msg;
+  n.style.display = 'block';
+  setTimeout(() => n.style.display = 'none', 3000);
 }
 
 // ============================================
-// AUTENTICAÇÃO
+// LOGIN
 // ============================================
 
 function fazerLogin() {
-  const email = document.getElementById('email').value.trim();
-  const senha = document.getElementById('senha').value;
+  let email = document.getElementById('emailInput').value;
+  let senha = document.getElementById('senhaInput').value;
   
-  const usuario = dados.usuarios.find(u => u.email === email && u.senha === senha);
+  let user = db.usuarios.find(u => u.email === email && u.senha === senha);
   
-  if (usuario) {
-    usuarioAtual = usuario;
-    localStorage.setItem('ovonorte_session', JSON.stringify({ id: usuario.id, nome: usuario.nome, funcao: usuario.funcao }));
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'block';
-    
-    document.getElementById('user-avatar').textContent = usuario.nome.substring(0, 2).toUpperCase();
-    document.getElementById('user-name').textContent = usuario.nome;
-    document.getElementById('user-role').textContent = usuario.funcao === 'diretor' ? 'Diretor' : 'Colaborador';
-    
-    if (usuario.funcao === 'diretor') {
-      document.getElementById('admin-section').style.display = 'block';
-    }
-    
-    mudarPagina('dashboard');
+  if (user) {
+    usuarioAtual = user;
+    localStorage.setItem('session', JSON.stringify({ id: user.id, nome: user.nome, funcao: user.funcao }));
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    iniciarApp();
   } else {
-    const errorDiv = document.getElementById('error-msg');
-    errorDiv.textContent = 'E-mail ou senha incorretos';
-    errorDiv.style.display = 'block';
-    setTimeout(() => errorDiv.style.display = 'none', 3000);
+    let err = document.getElementById('erroMsg');
+    err.textContent = 'E-mail ou senha incorretos';
+    err.style.display = 'block';
+    setTimeout(() => err.style.display = 'none', 3000);
   }
 }
 
 function fazerLogout() {
-  localStorage.removeItem('ovonorte_session');
+  localStorage.removeItem('session');
   usuarioAtual = null;
-  document.getElementById('app-screen').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('email').value = '';
-  document.getElementById('senha').value = '';
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+// ============================================
+// INICIAR APP
+// ============================================
+
+function iniciarApp() {
+  carregarDB();
+  
+  let aves = totalAves();
+  document.getElementById('infoAves').innerHTML = `🐔 ${aves} aves`;
+  
+  // Menu
+  let menu = document.getElementById('menuSuperior');
+  let paginas = ['dashboard', 'aves', 'ovos', 'racao', 'medicacao', 'mortalidade', 'custos', 'custo-unitario', 'relatorios'];
+  let nomes = ['Dashboard', 'Aves', 'Ovos', 'Ração', 'Medicação', 'Mortalidade', 'Custos', 'Custo Unitário', 'Relatórios'];
+  
+  if (usuarioAtual.funcao === 'diretor') {
+    paginas.push('usuarios');
+    nomes.push('Usuários');
+  }
+  
+  menu.innerHTML = '';
+  for (let i = 0; i < paginas.length; i++) {
+    menu.innerHTML += `<button onclick="mostrarPagina('${paginas[i]}')">${nomes[i]}</button>`;
+  }
+  
+  mostrarPagina('dashboard');
 }
 
 // ============================================
 // NAVEGAÇÃO
 // ============================================
 
-function mudarPagina(pagina) {
-  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-  const activeItem = document.querySelector(`.nav-item[data-page="${pagina}"]`);
-  if (activeItem) activeItem.classList.add('active');
+function mostrarPagina(pagina) {
+  document.querySelectorAll('#menuSuperior button').forEach(btn => btn.classList.remove('ativo'));
+  event?.target?.classList.add('ativo');
   
-  const titulos = {
-    dashboard: { title: 'Dashboard', meta: 'Visão geral do sistema' },
-    aves: { title: 'Controle de Aves', meta: 'Cadastro e movimentação de aves' },
-    ovos: { title: 'Coleta de Ovos', meta: 'Registro diário de produção' },
-    racao: { title: 'Ração e Água', meta: 'Controle de consumo com rateio' },
-    medicacao: { title: 'Medicação', meta: 'Registro de tratamentos' },
-    mortalidade: { title: 'Mortalidade', meta: 'Controle de perdas' },
-    custos: { title: 'Custos e Despesas', meta: 'Lançamento de gastos' },
-    'custo-unitario': { title: 'Custo Unitário', meta: 'Análise detalhada de custos' },
-    relatorios: { title: 'Relatórios', meta: 'Relatórios diários, mensais e anuais' },
-    usuarios: { title: 'Usuários', meta: 'Cadastro de usuários' }
+  let titulos = {
+    dashboard: 'Dashboard',
+    aves: 'Controle de Aves',
+    ovos: 'Coleta de Ovos',
+    racao: 'Ração e Água',
+    medicacao: 'Medicação',
+    mortalidade: 'Mortalidade',
+    custos: 'Custos',
+    'custo-unitario': 'Custo Unitário',
+    relatorios: 'Relatórios',
+    usuarios: 'Usuários'
   };
   
-  const info = titulos[pagina] || { title: 'Sistema', meta: '' };
-  document.getElementById('page-title').textContent = info.title;
-  document.getElementById('page-meta').textContent = info.meta;
+  document.getElementById('tituloPagina').textContent = titulos[pagina] || 'OVONORTE';
   
-  const container = document.getElementById('content-area');
+  let container = document.getElementById('conteudoArea');
   
   if (pagina === 'dashboard') renderDashboard(container);
   else if (pagina === 'aves') renderAves(container);
@@ -912,65 +473,400 @@ function mudarPagina(pagina) {
 // ============================================
 
 function renderDashboard(container) {
-  const aves = getTotalAves();
-  const hoje = new Date().toISOString().split('T')[0];
-  const mesInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+  let aves = totalAves();
+  let hoje = new Date().toISOString().split('T')[0];
+  let mesInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
   
-  const ovosHoje = dados.ovos.filter(o => o.data === hoje).reduce((s, o) => s + (o.inteiros || 0) + (o.trincados || 0), 0);
-  const ovosMes = dados.ovos.filter(o => o.data >= mesInicio).reduce((s, o) => s + (o.inteiros || 0) + (o.trincados || 0), 0);
-  const custosMes = dados.custos.filter(c => c.data >= mesInicio).reduce((s, c) => s + (c.valor || 0), 0);
-  const mortesMes = dados.mortalidades.filter(m => m.data >= mesInicio).reduce((s, m) => s + (m.qtd || 0), 0);
-  
-  const custoPorAve = aves > 0 ? custosMes / aves : 0;
-  const custoPorOvo = ovosMes > 0 ? custosMes / ovosMes : 0;
-  const produtividade = aves > 0 ? ((ovosMes / aves / 30) * 100).toFixed(1) : 0;
-  
-  document.getElementById('lote-badge').innerHTML = `🐔 ${aves} aves ativas`;
-  
-  // Gráfico semanal
-  const semanas = [];
-  for (let i = 6; i >= 0; i--) {
-    const data = new Date();
-    data.setDate(data.getDate() - (i * 7));
-    const inicioSemana = new Date(data);
-    inicioSemana.setDate(data.getDate() - data.getDay());
-    const fimSemana = new Date(inicioSemana);
-    fimSemana.setDate(inicioSemana.getDate() + 6);
-    const total = dados.ovos.filter(o => o.data >= inicioSemana.toISOString().split('T')[0] && o.data <= fimSemana.toISOString().split('T')[0])
-      .reduce((s, o) => s + (o.inteiros || 0) + (o.trincados || 0), 0);
-    semanas.push(total);
-  }
-  const maxValor = Math.max(...semanas, 1);
-  
-  // Últimos lançamentos
-  const recentes = [
-    ...dados.ovos.slice(-5).map(o => ({ data: o.data, tipo: 'Coleta de Ovos', valor: `${(o.inteiros||0)+(o.trincados||0)} ovos` })),
-    ...dados.custos.slice(-5).map(c => ({ data: c.data, tipo: c.descricao, valor: formatarMoeda(c.valor) }))
-  ].sort((a,b) => b.data.localeCompare(a.data)).slice(0,8);
+  let ovosHoje = db.ovos.filter(o => o.data === hoje).reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
+  let ovosMes = db.ovos.filter(o => o.data >= mesInicio).reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
+  let custosMes = db.custos.filter(c => c.data >= mesInicio).reduce((s,c) => s + (c.valor||0), 0);
+  let custoPorAve = aves > 0 ? custosMes / aves : 0;
+  let custoPorOvo = ovosMes > 0 ? custosMes / ovosMes : 0;
   
   container.innerHTML = `
-    <div class="kpi-grid">
-      <div class="kpi-card"><div class="kpi-label">Galinhas Ativas</div><div class="kpi-value">${aves}</div><div class="kpi-sub">Total no plantel</div><i class="fa fa-feather kpi-icon"></i></div>
-      <div class="kpi-card amarelo"><div class="kpi-label">Ovos Hoje</div><div class="kpi-value">${ovosHoje}</div><div class="kpi-sub">Coleta do dia</div><i class="fa fa-egg kpi-icon"></i></div>
-      <div class="kpi-card"><div class="kpi-label">Ovos no Mês</div><div class="kpi-value">${ovosMes}</div><div class="kpi-sub">Mês atual</div><i class="fa fa-calendar kpi-icon"></i></div>
-      <div class="kpi-card azul"><div class="kpi-label">Custo por Ave</div><div class="kpi-value">${formatarMoeda(custoPorAve)}</div><div class="kpi-sub">Mês atual</div><i class="fa fa-calculator kpi-icon"></i></div>
-      <div class="kpi-card azul"><div class="kpi-label">Custo por Ovo</div><div class="kpi-value">${formatarMoeda(custoPorOvo)}</div><div class="kpi-sub">Mês atual</div><i class="fa fa-coins kpi-icon"></i></div>
-      <div class="kpi-card vermelho"><div class="kpi-label">Produtividade</div><div class="kpi-value">${produtividade}%</div><div class="kpi-sub">Ovos/ave/dia</div><i class="fa fa-chart-line kpi-icon"></i></div>
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">Aves Ativas</div><div class="kpi-valor">${aves}</div></div>
+      <div class="kpi"><div class="kpi-label">Ovos Hoje</div><div class="kpi-valor">${ovosHoje}</div></div>
+      <div class="kpi"><div class="kpi-label">Ovos no Mês</div><div class="kpi-valor">${ovosMes}</div></div>
+      <div class="kpi"><div class="kpi-label">Custo por Ave</div><div class="kpi-valor">${formatarMoeda(custoPorAve)}</div></div>
+      <div class="kpi"><div class="kpi-label">Custo por Ovo</div><div class="kpi-valor">${formatarMoeda(custoPorOvo)}</div></div>
     </div>
-    
-    <div class="grid-2">
+    <div class="card"><h3>📊 Bem-vindo ao OVONORTE</h3><p>Utilize os menus para gerenciar sua produção avícola.</p></div>
+  `;
+}
+
+// ============================================
+// AVES
+// ============================================
+
+function renderAves(container) {
+  let lista = [...db.aves].sort((a,b) => b.data.localeCompare(a.data));
+  
+  container.innerHTML = `
+    <div class="grid2">
       <div class="card">
-        <div class="card-header">📊 Produção Semanal</div>
-        <div class="card-body">
-          <div class="chart-container">
-            ${semanas.map((v, i) => `<div class="chart-bar"><div class="bar" style="height:${Math.max(30, (v/maxValor)*150)}px"></div><div class="label">S${7-i}</div><div class="label">${v}</div></div>`).join('')}
-          </div>
-        </div>
+        <h3>➕ Registrar Movimentação</h3>
+        <label>Data</label><input type="date" id="aveData" value="${new Date().toISOString().split('T')[0]}">
+        <label>Tipo</label><select id="aveTipo"><option value="entrada">Entrada (Novas Aves)</option><option value="saida">Saída (Venda)</option></select>
+        <label>Quantidade</label><input type="number" id="aveQtd" min="1">
+        <label>Observação</label><textarea id="aveObs" rows="2"></textarea>
+        <button onclick="salvarAve()">Registrar</button>
       </div>
       <div class="card">
-        <div class="card-header">📋 Últimos Lançamentos</div>
-        <div class="card-body" style="padding:0;">
-          <table class="data-table">
-            <thead><tr><th>Data</th><th>Tipo</th><th>Valor</th></tr></thead>
-            <tbody>
-              ${recentes.map(r => `<tr><td>${formatarData(r.data)}</span></td><td>${r.tipo}
+        <h3>📋 Histórico</h3>
+        <table><thead><tr><th>Data</th><th>Tipo</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>
+          ${lista.map(a => `<tr><td>${formatarData(a.data)}</td><td>${a.tipo === 'entrada' ? '➕ Entrada' : '➖ Saída'}</td><td>${a.quantidade}</td><td>${a.obs || '—'}</td></tr>`).join('')}
+        </tbody></table>
+        <p style="margin-top:16px;"><strong>Total atual:</strong> ${totalAves()} aves</p>
+      </div>
+    </div>
+  `;
+}
+
+function salvarAve() {
+  let data = document.getElementById('aveData').value;
+  let tipo = document.getElementById('aveTipo').value;
+  let qtd = parseInt(document.getElementById('aveQtd').value);
+  let obs = document.getElementById('aveObs').value;
+  if (!qtd) return notificar('Informe a quantidade');
+  db.aves.push({ id: Date.now().toString(), data, tipo, quantidade: qtd, obs });
+  salvarDB();
+  notificar('Movimentação registrada');
+  mostrarPagina('aves');
+}
+
+// ============================================
+// OVOS
+// ============================================
+
+function renderOvos(container) {
+  let hoje = new Date().toISOString().split('T')[0];
+  let lista = [...db.ovos].sort((a,b) => b.data.localeCompare(a.data));
+  
+  container.innerHTML = `
+    <div class="grid2">
+      <div class="card">
+        <h3>📝 Registrar Coleta</h3>
+        <label>Data</label><input type="date" id="ovoData" value="${hoje}">
+        <label>Ovos Inteiros</label><input type="number" id="ovoInteiros" value="0">
+        <label>Ovos Trincados</label><input type="number" id="ovoTrincados" value="0">
+        <label>Observações</label><textarea id="ovoObs" rows="2"></textarea>
+        <button onclick="salvarOvo()">Registrar</button>
+      </div>
+      <div class="card">
+        <h3>📋 Histórico</h3>
+        <table><thead><tr><th>Data</th><th>Inteiros</th><th>Trincados</th><th>Total</th></tr></thead><tbody>
+          ${lista.map(o => `<tr><td>${formatarData(o.data)}</td><td>${o.inteiros}</td><td>${o.trincados}</td><td><strong>${o.inteiros + o.trincados}</strong></td></tr>`).join('')}
+        </tbody></table>
+      </div>
+    </div>
+  `;
+}
+
+function salvarOvo() {
+  let data = document.getElementById('ovoData').value;
+  let inteiros = parseInt(document.getElementById('ovoInteiros').value) || 0;
+  let trincados = parseInt(document.getElementById('ovoTrincados').value) || 0;
+  let obs = document.getElementById('ovoObs').value;
+  if (inteiros + trincados === 0) return notificar('Informe quantidade');
+  db.ovos.push({ id: Date.now().toString(), data, inteiros, trincados, obs });
+  salvarDB();
+  notificar('Coleta registrada');
+  mostrarPagina('ovos');
+}
+
+// ============================================
+// RAÇÃO
+// ============================================
+
+function renderRacao(container) {
+  let hoje = new Date().toISOString().split('T')[0];
+  let aves = totalAves();
+  let lista = [...db.racoes].sort((a,b) => b.data.localeCompare(a.data));
+  
+  container.innerHTML = `
+    <div class="grid2">
+      <div class="card">
+        <h3>🌾 Lançar Consumo (Rateio)</h3>
+        <div class="badge">📊 Rateio para ${aves} aves</div>
+        <label>Data</label><input type="date" id="raData" value="${hoje}">
+        <label>Ração (kg)</label><input type="number" id="raKg" step="0.1">
+        <label>Custo Ração (R$)</label><input type="number" id="raCusto" step="0.01">
+        <label>Água (L)</label><input type="number" id="aguaL" step="0.1">
+        <label>Custo Água (R$)</label><input type="number" id="aguaCusto" step="0.01">
+        <button onclick="salvarRacao()">Registrar</button>
+      </div>
+      <div class="card">
+        <h3>📋 Histórico</h3>
+        <table><thead><tr><th>Data</th><th>Ração</th><th>Custo</th><th>Custo/Ave</th></tr></thead><tbody>
+          ${lista.map(r => {
+            let custoTotal = (r.raCusto||0) + (r.aguaCusto||0);
+            let custoPorAve = aves > 0 ? custoTotal/aves : 0;
+            return `<tr><td>${formatarData(r.data)}</td><td>${(r.raKg||0).toFixed(1)} kg</td><td>${formatarMoeda(custoTotal)}</td><td>${formatarMoeda(custoPorAve)}</td></tr>`;
+          }).join('')}
+        </tbody></table>
+      </div>
+    </div>
+  `;
+}
+
+function salvarRacao() {
+  let data = document.getElementById('raData').value;
+  let raKg = parseFloat(document.getElementById('raKg').value) || 0;
+  let raCusto = parseFloat(document.getElementById('raCusto').value) || 0;
+  let aguaL = parseFloat(document.getElementById('aguaL').value) || 0;
+  let aguaCusto = parseFloat(document.getElementById('aguaCusto').value) || 0;
+  
+  if (raKg === 0 && aguaL === 0) return notificar('Informe pelo menos um consumo');
+  
+  db.racoes.push({ id: Date.now().toString(), data, raKg, raCusto, aguaL, aguaCusto });
+  
+  if (raCusto > 0) {
+    db.custos.push({ id: Date.now().toString()+'_r', data, descricao: `Ração (${raKg}kg)`, valor: raCusto });
+  }
+  if (aguaCusto > 0) {
+    db.custos.push({ id: Date.now().toString()+'_a', data, descricao: `Água (${aguaL}L)`, valor: aguaCusto });
+  }
+  
+  salvarDB();
+  notificar('Consumo registrado');
+  mostrarPagina('racao');
+}
+
+// ============================================
+// MEDICAÇÃO
+// ============================================
+
+function renderMedicacao(container) {
+  let hoje = new Date().toISOString().split('T')[0];
+  
+  container.innerHTML = `
+    <div class="grid2">
+      <div class="card">
+        <h3>💊 Registrar Medicação</h3>
+        <label>Data</label><input type="date" id="medData" value="${hoje}">
+        <label>Produto</label><input type="text" id="medProduto" placeholder="Nome do medicamento">
+        <label>Finalidade</label><select id="medFinalidade"><option>Antifúngico</option><option>Vacina</option><option>Antibiótico</option><option>Outro</option></select>
+        <label>Custo (R$)</label><input type="number" id="medCusto" step="0.01">
+        <label>Aves Tratadas</label><input type="number" id="medAves" placeholder="Deixe em branco para todas">
+        <button onclick="salvarMedicacao()">Registrar</button>
+      </div>
+      <div class="card">
+        <h3>📋 Histórico</h3>
+        <table><thead><tr><th>Data</th><th>Produto</th><th>Finalidade</th><th>Custo</th></tr></thead><tbody>
+          ${db.medicacoes.map(m => `<tr><td>${formatarData(m.data)}</td><td>${m.produto}</td><td>${m.finalidade}</td><td>${formatarMoeda(m.custo)}</td></tr>`).join('')}
+        </tbody></table>
+      </div>
+    </div>
+  `;
+}
+
+function salvarMedicacao() {
+  let data = document.getElementById('medData').value;
+  let produto = document.getElementById('medProduto').value;
+  let finalidade = document.getElementById('medFinalidade').value;
+  let custo = parseFloat(document.getElementById('medCusto').value) || 0;
+  let aves = parseInt(document.getElementById('medAves').value) || totalAves();
+  
+  if (!produto) return notificar('Informe o produto');
+  
+  db.medicacoes.push({ id: Date.now().toString(), data, produto, finalidade, custo, aves });
+  
+  if (custo > 0) {
+    db.custos.push({ id: Date.now().toString(), data, descricao: `Medicação: ${produto}`, valor: custo });
+  }
+  
+  salvarDB();
+  notificar('Medicação registrada');
+  mostrarPagina('medicacao');
+}
+
+// ============================================
+// MORTALIDADE
+// ============================================
+
+function renderMortalidade(container) {
+  let hoje = new Date().toISOString().split('T')[0];
+  let totalMortes = db.mortalidades.reduce((s,m) => s + m.qtd, 0);
+  let aves = totalAves();
+  let perc = aves > 0 ? ((totalMortes / (aves + totalMortes)) * 100).toFixed(1) : 0;
+  
+  container.innerHTML = `
+    <div class="grid2">
+      <div class="card">
+        <h3>⚠️ Registrar Mortalidade</h3>
+        <div class="badge">Mortalidade acumulada: ${totalMortes} aves (${perc}%)</div>
+        <label>Data</label><input type="date" id="mortData" value="${hoje}">
+        <label>Quantidade</label><input type="number" id="mortQtd" min="1">
+        <label>Causa</label><select id="mortCausa"><option>Doença</option><option>Estresse</option><option>Acidente</option><option>Outro</option></select>
+        <label>Observações</label><textarea id="mortObs" rows="2"></textarea>
+        <button onclick="salvarMortalidade()">Registrar</button>
+      </div>
+      <div class="card">
+        <h3>📋 Histórico</h3>
+        <table><thead><tr><th>Data</th><th>Qtd</th><th>Causa</th></tr></thead><tbody>
+          ${db.mortalidades.map(m => `<tr><td>${formatarData(m.data)}</td><td><strong>${m.qtd}</strong></td><td>${m.causa || '—'}</td></tr>`).join('')}
+        </tbody></table>
+      </div>
+    </div>
+  `;
+}
+
+function salvarMortalidade() {
+  let data = document.getElementById('mortData').value;
+  let qtd = parseInt(document.getElementById('mortQtd').value) || 0;
+  let causa = document.getElementById('mortCausa').value;
+  let obs = document.getElementById('mortObs').value;
+  if (qtd <= 0) return notificar('Informe a quantidade');
+  db.mortalidades.push({ id: Date.now().toString(), data, qtd, causa, obs });
+  salvarDB();
+  notificar('Mortalidade registrada');
+  mostrarPagina('mortalidade');
+}
+
+// ============================================
+// CUSTOS
+// ============================================
+
+function renderCustos(container) {
+  let hoje = new Date().toISOString().split('T')[0];
+  let lista = [...db.custos].sort((a,b) => b.data.localeCompare(a.data));
+  let total = db.custos.reduce((s,c) => s + (c.valor||0), 0);
+  
+  container.innerHTML = `
+    <div class="grid2">
+      <div class="card">
+        <h3>💰 Lançar Custo</h3>
+        <label>Data</label><input type="date" id="custoData" value="${hoje}">
+        <label>Descrição</label><input type="text" id="custoDesc" placeholder="Ex: Energia, Mão de obra...">
+        <label>Valor (R$)</label><input type="number" id="custoValor" step="0.01">
+        <button onclick="salvarCusto()">Registrar</button>
+      </div>
+      <div class="card">
+        <h3>📋 Últimos Custos (Total: ${formatarMoeda(total)})</h3>
+        <table><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>
+          ${lista.slice(0,20).map(c => `<tr><td>${formatarData(c.data)}</td><td>${c.descricao}</td><td>${formatarMoeda(c.valor)}</td></tr>`).join('')}
+        </tbody></table>
+      </div>
+    </div>
+  `;
+}
+
+function salvarCusto() {
+  let data = document.getElementById('custoData').value;
+  let desc = document.getElementById('custoDesc').value;
+  let valor = parseFloat(document.getElementById('custoValor').value) || 0;
+  if (!desc || valor <= 0) return notificar('Preencha todos os campos');
+  db.custos.push({ id: Date.now().toString(), data, descricao: desc, valor });
+  salvarDB();
+  notificar('Custo registrado');
+  mostrarPagina('custos');
+}
+
+// ============================================
+// CUSTO UNITÁRIO
+// ============================================
+
+function renderCustoUnitario(container) {
+  let aves = totalAves();
+  let totalOvos = db.ovos.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
+  let totalCustos = db.custos.reduce((s,c) => s + (c.valor||0), 0);
+  let custoPorAve = aves > 0 ? totalCustos / aves : 0;
+  let custoPorOvo = totalOvos > 0 ? totalCustos / totalOvos : 0;
+  
+  container.innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">Total Custos</div><div class="kpi-valor">${formatarMoeda(totalCustos)}</div></div>
+      <div class="kpi"><div class="kpi-label">Total Ovos</div><div class="kpi-valor">${totalOvos}</div></div>
+      <div class="kpi"><div class="kpi-label">Aves</div><div class="kpi-valor">${aves}</div></div>
+      <div class="kpi"><div class="kpi-label">Custo por Ave</div><div class="kpi-valor">${formatarMoeda(custoPorAve)}</div></div>
+      <div class="kpi"><div class="kpi-label">Custo por Ovo</div><div class="kpi-valor">${formatarMoeda(custoPorOvo)}</div></div>
+    </div>
+  `;
+}
+
+// ============================================
+// RELATÓRIOS
+// ============================================
+
+function renderRelatorios(container) {
+  let aves = totalAves();
+  let totalOvos = db.ovos.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
+  let totalCustos = db.custos.reduce((s,c) => s + (c.valor||0), 0);
+  
+  container.innerHTML = `
+    <div class="card">
+      <h3>📄 Relatório Gerencial</h3>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-label">Total Aves</div><div class="kpi-valor">${aves}</div></div>
+        <div class="kpi"><div class="kpi-label">Total Ovos</div><div class="kpi-valor">${totalOvos}</div></div>
+        <div class="kpi"><div class="kpi-label">Total Custos</div><div class="kpi-valor">${formatarMoeda(totalCustos)}</div></div>
+        <div class="kpi"><div class="kpi-label">Custo por Ave</div><div class="kpi-valor">${aves > 0 ? formatarMoeda(totalCustos/aves) : 'R$ 0'}</div></div>
+        <div class="kpi"><div class="kpi-label">Custo por Ovo</div><div class="kpi-valor">${totalOvos > 0 ? formatarMoeda(totalCustos/totalOvos) : 'R$ 0'}</div></div>
+      </div>
+      <button onclick="window.print()">🖨️ Imprimir Relatório</button>
+    </div>
+  `;
+}
+
+// ============================================
+// USUÁRIOS
+// ============================================
+
+function renderUsuarios(container) {
+  container.innerHTML = `
+    <div class="grid2">
+      <div class="card">
+        <h3>👤 Cadastrar Usuário</h3>
+        <label>Nome</label><input type="text" id="userNome" placeholder="Nome completo">
+        <label>E-mail</label><input type="email" id="userEmail" placeholder="email@exemplo.com">
+        <label>Senha</label><input type="password" id="userSenha" placeholder="Mínimo 6 caracteres">
+        <label>Função</label><select id="userFuncao"><option>colaborador</option><option>diretor</option></select>
+        <button onclick="salvarUsuario()">Cadastrar</button>
+      </div>
+      <div class="card">
+        <h3>📋 Usuários</h3>
+        <tr><thead><tr><th>Nome</th><th>E-mail</th><th>Função</th></tr></thead><tbody>
+          ${db.usuarios.map(u => `<tr><td>${u.nome}</span></td><td>${u.email}</td><td>${u.funcao}</span></tr>`).join('')}
+        </tbody></table>
+      </div>
+    </div>
+  `;
+}
+
+function salvarUsuario() {
+  let nome = document.getElementById('userNome').value;
+  let email = document.getElementById('userEmail').value;
+  let senha = document.getElementById('userSenha').value;
+  let funcao = document.getElementById('userFuncao').value;
+  
+  if (!nome || !email || !senha) return notificar('Preencha todos os campos');
+  if (senha.length < 6) return notificar('Senha mínima 6 caracteres');
+  if (db.usuarios.find(u => u.email === email)) return notificar('E-mail já cadastrado');
+  
+  db.usuarios.push({ id: Date.now().toString(), nome, email, senha, funcao });
+  salvarDB();
+  notificar('Usuário cadastrado');
+  mostrarPagina('usuarios');
+}
+
+// ============================================
+// INICIAR
+// ============================================
+
+carregarDB();
+
+let session = localStorage.getItem('session');
+if (session) {
+  let data = JSON.parse(session);
+  let user = db.usuarios.find(u => u.id === data.id);
+  if (user) {
+    usuarioAtual = user;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    iniciarApp();
+  }
+}
+</script>
+</body>
+</html>
