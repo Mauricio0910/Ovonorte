@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OVONORTE - Gestão Avícola</title>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
 <style>
 * {
   margin: 0;
@@ -76,6 +82,10 @@ body {
   margin-top: 10px;
 }
 
+.loginBox button:hover {
+  background: var(--verde-escuro);
+}
+
 .erro {
   color: var(--vermelho);
   background: #fde8e6;
@@ -98,6 +108,7 @@ body {
   gap: 8px;
   position: sticky;
   top: 0;
+  z-index: 100;
 }
 
 .menuSuperior button {
@@ -133,7 +144,6 @@ body {
   border-bottom: 2px solid var(--verde-bg);
 }
 
-/* Formulários - Layout vertical */
 .formulario {
   display: flex;
   flex-direction: column;
@@ -179,6 +189,44 @@ body {
 
 .btn-primary:hover {
   background: var(--verde-escuro);
+}
+
+.btn-danger {
+  background: var(--vermelho);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-danger:hover {
+  background: #a93226;
+}
+
+.btn-secondary {
+  background: #555;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-secondary:hover {
+  background: #333;
+}
+
+.btn-small {
+  padding: 6px 10px;
+  font-size: 12px;
+  margin: 2px;
+}
+
+.acoes {
+  white-space: nowrap;
 }
 
 /* KPIs */
@@ -260,15 +308,6 @@ th, td {
   z-index: 2000;
 }
 
-@media (max-width: 768px) {
-  .grid2 {
-    grid-template-columns: 1fr;
-  }
-  .menuSuperior {
-    flex-direction: column;
-  }
-}
-
 .rateio-box {
   background: var(--verde-bg);
   border-radius: 8px;
@@ -281,6 +320,21 @@ th, td {
   justify-content: space-between;
   padding: 6px 0;
 }
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+}
+
+@media (max-width: 768px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+  .menuSuperior {
+    flex-direction: column;
+  }
+}
 </style>
 </head>
 <body>
@@ -292,9 +346,12 @@ th, td {
     <h1>OVONORTE</h1>
     <p>Sistema de Gestão Avícola</p>
     <div id="erroMsg" class="erro"></div>
-    <input type="text" id="emailInput" placeholder="E-mail" value="admin@ovonorte.com.br">
-    <input type="password" id="senhaInput" placeholder="Senha" value="admin123">
+    <input type="text" id="emailInput" placeholder="E-mail">
+    <input type="password" id="senhaInput" placeholder="Senha">
     <button onclick="fazerLogin()">Entrar</button>
+    <p style="margin-top:16px; font-size:12px; color:#888;">
+      <a href="#" onclick="mostrarCadastro()">Cadastre-se</a>
+    </p>
   </div>
 </div>
 
@@ -305,7 +362,11 @@ th, td {
       <h2 id="tituloPagina">OVONORTE</h2>
       <div class="badge" id="infoAves">Carregando...</div>
     </div>
-    <button onclick="fazerLogout()" style="background:#c0392b; padding:8px 16px;">Sair</button>
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+      <span class="badge" id="firebaseStatus">Firebase: verificando...</span>
+      <span class="badge" id="usuarioLogado"></span>
+      <button onclick="fazerLogout()" style="background:#555; color:white; border:none; border-radius:8px; padding:8px 16px; cursor:pointer;">Sair</button>
+    </div>
   </div>
   
   <div class="menuSuperior" id="menuSuperior"></div>
@@ -317,82 +378,176 @@ th, td {
 
 <script>
 // ============================================
-// DADOS
+// FIREBASE CONFIGURAÇÃO
+// ============================================
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAUEmX8hw1o8EKU1fXA8DUNzNMQHfvEftc",
+  authDomain: "ovonorte-94684.firebaseapp.com",
+  projectId: "ovonorte-94684",
+  storageBucket: "ovonorte-94684.firebasestorage.app",
+  messagingSenderId: "21855709216",
+  appId: "1:21855709216:web:9e9eefafaa661d1c42f445"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ============================================
+// VARIÁVEIS GLOBAIS
 // ============================================
 
 let usuarioAtual = null;
+let perfilUsuarioAtual = null;
 
-let db = {
-  usuarios: [
-    { id: '1', nome: 'Administrador', email: 'admin@ovonorte.com.br', senha: 'admin123', funcao: 'diretor' }
-  ],
-  aves: [],
-  ovos: [],
-  racoes: [],
-  medicacoes: [],
-  mortalidades: [],
-  custos: []
-};
+const COLECOES_OPERACIONAIS_PADRAO = [
+  // Coleções usadas diretamente por este sistema
+  'aves',
+  'ovos',
+  'racoes',
+  'medicacoes',
+  'mortalidades',
+  'custos',
 
-function carregarDB() {
-  const saved = localStorage.getItem('ovonorte_db');
-  if (saved) {
-    const p = JSON.parse(saved);
-    if (p.aves) db.aves = p.aves;
-    if (p.ovos) db.ovos = p.ovos;
-    if (p.racoes) db.racoes = p.racoes;
-    if (p.medicacoes) db.medicacoes = p.medicacoes;
-    if (p.mortalidades) db.mortalidades = p.mortalidades;
-    if (p.custos) db.custos = p.custos;
-  }
-  
-  if (db.aves.length === 0) {
-    db.aves.push({
-      id: '1',
-      data: new Date().toISOString().split('T')[0],
-      quantidade: 500,
-      tipo: 'entrada',
-      obs: 'Lote inicial'
-    });
-  }
-  
-  if (db.ovos.length === 0) {
-    for (let i = 0; i < 30; i++) {
-      let d = new Date();
-      d.setDate(d.getDate() - i);
-      db.ovos.push({
-        id: 'o'+i,
-        data: d.toISOString().split('T')[0],
-        inteiros: 400 + Math.floor(Math.random() * 80),
-        trincados: Math.floor(Math.random() * 15)
-      });
-    }
-  }
-  
-  salvarDB();
-}
+  // Possíveis coleções antigas/de teste usadas em versões anteriores
+  'custo',
+  'despesas',
+  'despesa',
+  'vendas',
+  'venda',
+  'revendas',
+  'revenda',
+  'historicoVendas',
+  'historicoVenda',
+  'historicosVendas',
+  'historico_vendas',
+  'historico_venda',
+  'historicos_vendas',
+  'historicoRevendas',
+  'historicoRevenda',
+  'historicosRevendas',
+  'historico_revendas',
+  'historico_revenda',
+  'historicos_revendas',
+  'historicoDeRevendas',
+  'historico_de_revendas',
+  'revendasHistorico',
+  'revendaHistorico',
+  'historico',
+  'historicos',
+  'historicoCustos',
+  'historico_custos',
 
-function salvarDB() {
-  localStorage.setItem('ovonorte_db', JSON.stringify({
-    aves: db.aves,
-    ovos: db.ovos,
-    racoes: db.racoes,
-    medicacoes: db.medicacoes,
-    mortalidades: db.mortalidades,
-    custos: db.custos
-  }));
-}
+  // Cadastros operacionais que podem ter sido populados com teste
+  'clientes',
+  'cliente',
+  'fornecedores',
+  'fornecedor',
+  'produtos',
+  'produto',
+  'estoques',
+  'estoque',
+  'lotes',
+  'lote',
+  'producoes',
+  'producao',
+  'coletas',
+  'coleta',
+  'coletaOvos',
+  'coletasOvos',
+  'estoqueOvos',
 
-function totalAves() {
-  let total = 0;
-  db.aves.forEach(a => {
-    if (a.tipo === 'entrada') total += a.quantidade;
-    else total -= a.quantidade;
-  });
-  let mortes = 0;
-  db.mortalidades.forEach(m => mortes += m.qtd);
-  return Math.max(0, total - mortes);
-}
+  // Variações com inicial maiúscula, pois coleção do Firestore diferencia maiúsculas/minúsculas
+  'Custos',
+  'Custo',
+  'Despesas',
+  'Vendas',
+  'Venda',
+  'Revendas',
+  'Revenda',
+  'HistoricoRevendas',
+  'HistoricoRevenda',
+  'HistoricosRevendas',
+  'HistoricoVendas',
+  'HistoricoCustos'
+];
+
+const COLECOES_LIMPEZA_CRITICA = [
+  'custos',
+  'custo',
+  'despesas',
+  'despesa',
+  'historicoCustos',
+  'historico_custos',
+  'vendas',
+  'venda',
+  'revendas',
+  'revenda',
+  'historicoVendas',
+  'historicoVenda',
+  'historicosVendas',
+  'historico_vendas',
+  'historico_venda',
+  'historicos_vendas',
+  'historicoRevendas',
+  'historicoRevenda',
+  'historicosRevendas',
+  'historico_revendas',
+  'historico_revenda',
+  'historicos_revendas',
+  'historicoDeRevendas',
+  'historico_de_revendas',
+  'revendasHistorico',
+  'revendaHistorico',
+  'historico',
+  'historicos',
+  'Custos',
+  'Custo',
+  'Despesas',
+  'Vendas',
+  'Venda',
+  'Revendas',
+  'Revenda',
+  'HistoricoRevendas',
+  'HistoricoRevenda',
+  'HistoricosRevendas',
+  'HistoricoVendas',
+  'HistoricoCustos'
+];
+
+const CAMPOS_DONO_DOCUMENTO = [
+  'usuarioId',
+  'userId',
+  'uid',
+  'idUsuario',
+  'usuario_id',
+  'usuarioUID',
+  'usuarioUid',
+  'usuario',
+  'ownerId',
+  'createdBy',
+  'criadoPor',
+  'responsavelId',
+  'emailUsuario',
+  'userEmail',
+  'email'
+];
+
+const CAMPOS_DATA_DOCUMENTO = [
+  'data',
+  'dt',
+  'dataLancamento',
+  'data_lancamento',
+  'createdAt',
+  'criadoEm',
+  'created_at'
+];
+
+// ============================================
+// FUNÇÕES AUXILIARES
+// ============================================
 
 function formatarMoeda(v) {
   return 'R$ ' + (v || 0).toFixed(2).replace('.', ',');
@@ -404,87 +559,664 @@ function formatarData(d) {
   return `${p[2]}/${p[1]}/${p[0]}`;
 }
 
-function notificar(msg) {
+function notificar(msg, tipo = 'info') {
   let n = document.getElementById('notificacao');
   n.textContent = msg;
   n.style.display = 'block';
-  setTimeout(() => n.style.display = 'none', 3000);
+  n.style.borderLeft = tipo === 'error' ? '4px solid var(--vermelho)' : '4px solid var(--verde)';
+  setTimeout(() => n.style.display = 'none', 4000);
+}
+
+function hojeISO() {
+  // Data local no formato YYYY-MM-DD, evitando deslocamento por UTC.
+  const agora = new Date();
+  const local = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
+function escapeHtml(valor) {
+  return String(valor ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function escapeJs(valor) {
+  return String(valor ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r?\n/g, ' ');
+}
+
+function botaoExcluir(colecao, id, descricao) {
+  return `<button class="btn-danger btn-small" onclick="excluirRegistro('${colecao}', '${escapeJs(id)}', '${escapeJs(descricao)}')">🗑️ Excluir</button>`;
+}
+
+function atualizarStatusFirebase(ok, detalhe = '') {
+  const el = document.getElementById('firebaseStatus');
+  if (!el) return;
+  el.textContent = ok ? 'Firebase: conectado' : 'Firebase: erro';
+  el.style.background = ok ? 'var(--verde-bg)' : '#fde8e6';
+  el.title = detalhe || '';
 }
 
 // ============================================
-// LOGIN
+// AUTENTICAÇÃO
 // ============================================
 
-function fazerLogin() {
-  let email = document.getElementById('emailInput').value;
-  let senha = document.getElementById('senhaInput').value;
-  
-  let user = db.usuarios.find(u => u.email === email && u.senha === senha);
-  
-  if (user) {
-    usuarioAtual = user;
-    localStorage.setItem('session', JSON.stringify({ id: user.id, nome: user.nome, funcao: user.funcao }));
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
-    iniciarApp();
-  } else {
-    let err = document.getElementById('erroMsg');
-    err.textContent = 'E-mail ou senha incorretos';
-    err.style.display = 'block';
-    setTimeout(() => err.style.display = 'none', 3000);
+function mostrarCadastro() {
+  const email = prompt('Digite seu e-mail para cadastro:');
+  if (!email) return;
+  const senha = prompt('Digite sua senha (mínimo 6 caracteres):');
+  if (!senha || senha.length < 6) {
+    alert('Senha deve ter no mínimo 6 caracteres');
+    return;
   }
+
+  auth.createUserWithEmailAndPassword(email, senha)
+    .then(userCredential => {
+      const user = userCredential.user;
+      // Criar documento do usuário no Firestore
+      db.collection('usuarios').doc(user.uid).set({
+        nome: email.split('@')[0],
+        email: email,
+        funcao: 'colaborador',
+        criadoEm: new Date().toISOString()
+      })
+      .then(() => {
+        alert('✅ Cadastro realizado com sucesso! Faça login.');
+      })
+      .catch(error => {
+        alert('❌ Erro ao criar perfil: ' + error.message);
+      });
+    })
+    .catch(error => {
+      alert('❌ Erro no cadastro: ' + error.message);
+    });
+}
+
+function fazerLogin() {
+  let email = document.getElementById('emailInput').value.trim();
+  let senha = document.getElementById('senhaInput').value;
+
+  if (!email || !senha) {
+    mostrarErro('Preencha e-mail e senha');
+    return;
+  }
+
+  auth.signInWithEmailAndPassword(email, senha)
+    .then(userCredential => {
+      usuarioAtual = userCredential.user;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'block';
+      iniciarApp();
+    })
+    .catch(error => {
+      mostrarErro('E-mail ou senha incorretos');
+      console.error(error);
+    });
+}
+
+function mostrarErro(msg) {
+  let err = document.getElementById('erroMsg');
+  err.textContent = msg;
+  err.style.display = 'block';
+  setTimeout(() => err.style.display = 'none', 3000);
 }
 
 function fazerLogout() {
-  localStorage.removeItem('session');
-  usuarioAtual = null;
-  document.getElementById('appScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
+  auth.signOut().then(() => {
+    usuarioAtual = null;
+    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+  });
 }
 
-function iniciarApp() {
-  carregarDB();
-  
-  let aves = totalAves();
-  document.getElementById('infoAves').innerHTML = `🐔 ${aves} aves`;
-  
-  let menu = document.getElementById('menuSuperior');
-  let paginas = ['dashboard', 'aves', 'ovos', 'racao', 'medicacao', 'mortalidade', 'custos', 'custo-unitario', 'relatorios'];
-  let nomes = ['Dashboard', 'Aves', 'Ovos', 'Ração', 'Medicação', 'Mortalidade', 'Custos', 'Custo Unitário', 'Relatórios'];
-  
-  if (usuarioAtual.funcao === 'diretor') {
-    paginas.push('usuarios');
-    nomes.push('Usuários');
+// ============================================
+// FUNÇÕES DE ACESSO AO FIREBASE
+// ============================================
+
+async function getTotalAves() {
+  try {
+    const snapshot = await db.collection('aves')
+      .where('usuarioId', '==', usuarioAtual.uid)
+      .get();
+    
+    let total = 0;
+    snapshot.forEach(doc => {
+      const a = doc.data();
+      if (a.tipo === 'entrada') total += a.quantidade;
+      else total -= a.quantidade;
+    });
+
+    const mortSnapshot = await db.collection('mortalidades')
+      .where('usuarioId', '==', usuarioAtual.uid)
+      .get();
+    
+    let mortes = 0;
+    mortSnapshot.forEach(doc => mortes += (doc.data().qtd || 0));
+    
+    return Math.max(0, total - mortes);
+  } catch (e) {
+    console.error(e);
+    return 0;
   }
-  
-  menu.innerHTML = '';
-  for (let i = 0; i < paginas.length; i++) {
-    menu.innerHTML += `<button onclick="mostrarPagina('${paginas[i]}')">${nomes[i]}</button>`;
+}
+
+async function getTotalOvos() {
+  try {
+    const snapshot = await db.collection('ovos')
+      .where('usuarioId', '==', usuarioAtual.uid)
+      .get();
+    
+    let total = 0;
+    snapshot.forEach(doc => {
+      const o = doc.data();
+      total += (o.inteiros || 0) + (o.trincados || 0);
+    });
+    return total;
+  } catch (e) {
+    console.error(e);
+    return 0;
   }
-  
+}
+
+async function getTotalCustos() {
+  try {
+    const snapshot = await db.collection('custos')
+      .where('usuarioId', '==', usuarioAtual.uid)
+      .get();
+    
+    let total = 0;
+    snapshot.forEach(doc => total += (doc.data().valor || 0));
+    return total;
+  } catch (e) {
+    console.error(e);
+    return 0;
+  }
+}
+
+async function carregarDados(colecao) {
+  try {
+    const snapshot = await db.collection(colecao)
+      .where('usuarioId', '==', usuarioAtual.uid)
+      .orderBy('data', 'desc')
+      .get();
+
+    const lista = [];
+    snapshot.forEach(doc => {
+      lista.push({ id: doc.id, ...doc.data() });
+    });
+    atualizarStatusFirebase(true);
+    return lista;
+  } catch (e) {
+    console.warn(`Consulta com orderBy falhou em ${colecao}. Tentando sem ordenação.`, e);
+
+    try {
+      // Fallback: evita tela vazia quando falta índice composto no Firestore.
+      const snapshot = await db.collection(colecao)
+        .where('usuarioId', '==', usuarioAtual.uid)
+        .get();
+
+      const lista = [];
+      snapshot.forEach(doc => {
+        lista.push({ id: doc.id, ...doc.data() });
+      });
+      lista.sort((a, b) => String(b.data || '').localeCompare(String(a.data || '')));
+      atualizarStatusFirebase(true);
+      return lista;
+    } catch (erroFallback) {
+      console.error(`Erro ao carregar ${colecao}:`, erroFallback);
+      atualizarStatusFirebase(false, erroFallback.message);
+      return [];
+    }
+  }
+}
+
+async function salvarDado(colecao, dados) {
+  try {
+    dados.usuarioId = usuarioAtual.uid;
+    dados.criadoEm = new Date().toISOString();
+    const ref = await db.collection(colecao).add(dados);
+    atualizarStatusFirebase(true);
+    return ref;
+  } catch (e) {
+    console.error(`Erro ao salvar em ${colecao}:`, e);
+    atualizarStatusFirebase(false, e.message);
+    return null;
+  }
+}
+
+function obterColecoesManutencao() {
+  const campo = document.getElementById('colecoesLimpeza');
+  const base = campo ? campo.value : COLECOES_OPERACIONAIS_PADRAO.join('\n');
+
+  return [...new Set(
+    base
+      .split(/[\n,;]+/)
+      .map(item => item.trim())
+      .filter(Boolean)
+      .filter(item => /^[A-Za-z0-9_-]+$/.test(item))
+      .filter(item => item !== 'usuarios')
+  )];
+}
+
+function valoresPossiveisUsuarioAtual() {
+  if (!usuarioAtual) return [];
+  return [...new Set([
+    usuarioAtual.uid,
+    usuarioAtual.email,
+    perfilUsuarioAtual?.email,
+    perfilUsuarioAtual?.nome,
+    perfilUsuarioAtual?.id,
+    perfilUsuarioAtual?.uid
+  ].filter(Boolean))];
+}
+
+async function apagarSnapshotEmLote(snapshot) {
+  if (snapshot.empty) return 0;
+
+  const batch = db.batch();
+  snapshot.docs.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
+  return snapshot.size;
+}
+
+async function apagarConsultaEmLotes(criarConsulta, tamanhoLote = 400) {
+  let total = 0;
+
+  while (true) {
+    const snapshot = await criarConsulta().limit(tamanhoLote).get();
+    if (snapshot.empty) break;
+
+    total += await apagarSnapshotEmLote(snapshot);
+    if (snapshot.size < tamanhoLote) break;
+  }
+
+  return total;
+}
+
+async function contarConsultaSegura(criarConsulta, tamanhoLote = 500) {
+  const snapshot = await criarConsulta().limit(tamanhoLote).get();
+  return snapshot.size;
+}
+
+async function apagarColecaoPorUsuario(colecao) {
+  let total = 0;
+  const erros = [];
+  const valoresUsuario = valoresPossiveisUsuarioAtual();
+
+  for (const campo of CAMPOS_DONO_DOCUMENTO) {
+    for (const valor of valoresUsuario) {
+      try {
+        total += await apagarConsultaEmLotes(() =>
+          db.collection(colecao).where(campo, '==', valor)
+        );
+      } catch (e) {
+        // Ignora erros de campo/regra nesta varredura para continuar testando outras possibilidades.
+        erros.push(`${campo}: ${e.message}`);
+      }
+    }
+  }
+
+  return { total, erros };
+}
+
+async function apagarColecaoInteira(colecao) {
+  return apagarConsultaEmLotes(() => db.collection(colecao));
+}
+
+async function apagarGrupoDeSubcolecao(colecao) {
+  if (typeof db.collectionGroup !== 'function') return 0;
+  return apagarConsultaEmLotes(() => db.collectionGroup(colecao));
+}
+
+async function apagarColecaoPorDataHoje(colecao, dataISO) {
+  let total = 0;
+  const erros = [];
+  const valoresUsuario = valoresPossiveisUsuarioAtual();
+
+  for (const campoData of CAMPOS_DATA_DOCUMENTO) {
+    try {
+      total += await apagarConsultaEmLotes(() =>
+        db.collection(colecao).where(campoData, '==', dataISO)
+      );
+    } catch (e) {
+      erros.push(`${campoData}: ${e.message}`);
+    }
+
+    for (const campoDono of CAMPOS_DONO_DOCUMENTO) {
+      for (const valorUsuario of valoresUsuario) {
+        try {
+          total += await apagarConsultaEmLotes(() =>
+            db.collection(colecao)
+              .where(campoData, '==', dataISO)
+              .where(campoDono, '==', valorUsuario)
+          );
+        } catch (e) {
+          erros.push(`${campoData}+${campoDono}: ${e.message}`);
+        }
+      }
+    }
+  }
+
+  return { total, erros };
+}
+
+async function excluirCustosVinculados(origemColecao, origemId) {
+  try {
+    let total = 0;
+
+    // Custos novos gravados pela versão corrigida.
+    total += await apagarConsultaEmLotes(() =>
+      db.collection('custos')
+        .where('usuarioId', '==', usuarioAtual.uid)
+        .where('origemColecao', '==', origemColecao)
+        .where('origemId', '==', origemId)
+    );
+
+    // Custos antigos podem ter sido gravados sem usuarioId.
+    total += await apagarConsultaEmLotes(() =>
+      db.collection('custos')
+        .where('origemColecao', '==', origemColecao)
+        .where('origemId', '==', origemId)
+    );
+
+    total += await apagarConsultaEmLotes(() =>
+      db.collection('custos')
+        .where('referenciaColecao', '==', origemColecao)
+        .where('referenciaId', '==', origemId)
+    );
+
+    return total;
+  } catch (e) {
+    console.warn('Não foi possível remover custos vinculados:', e);
+    return 0;
+  }
+}
+
+async function excluirRegistro(colecao, id, descricao) {
+  if (!usuarioAtual || !id || !colecao) return;
+
+  const ok = confirm(`Confirma excluir este registro de ${descricao || colecao}?`);
+  if (!ok) return;
+
+  try {
+    await db.collection(colecao).doc(id).delete();
+
+    // Remove custos automáticos vinculados a registros novos e antigos.
+    if (colecao !== 'custos') {
+      await excluirCustosVinculados(colecao, id);
+    }
+
+    notificar('✅ Registro excluído com sucesso!');
+    atualizarStatusFirebase(true);
+    await atualizarResumoTopo();
+    mostrarPagina(paginaAtual);
+  } catch (e) {
+    console.error('Erro ao excluir:', e);
+    atualizarStatusFirebase(false, e.message);
+    notificar(`❌ Erro ao excluir: ${e.message}`, 'error');
+  }
+}
+
+async function atualizarResumoTopo() {
+  if (!usuarioAtual) return;
+
+  const aves = await getTotalAves();
+  const ovos = await getTotalOvos();
+  document.getElementById('infoAves').innerHTML = `🐔 ${aves} aves | ${ovos} ovos`;
+}
+
+async function apagarLancamentosHoje() {
+  if (!usuarioAtual) return;
+
+  const data = hojeISO();
+  const confirmar = confirm(`Apagar todos os lançamentos do dia ${formatarData(data)} nas coleções operacionais?`);
+  if (!confirmar) return;
+
+  let total = 0;
+  const resultado = [];
+
+  for (const colecao of COLECOES_OPERACIONAIS_PADRAO) {
+    try {
+      const r = await apagarColecaoPorDataHoje(colecao, data);
+      total += r.total;
+      resultado.push(`✅ ${colecao}: ${r.total}`);
+    } catch (e) {
+      resultado.push(`❌ ${colecao}: ${e.message}`);
+    }
+  }
+
+  const saida = document.getElementById('resultadoLimpeza');
+  if (saida) {
+    saida.innerHTML = `
+      <strong>Resultado da limpeza de hoje:</strong><br>
+      ${resultado.map(linha => escapeHtml(linha)).join('<br>')}
+      <br><br><strong>Total apagado:</strong> ${total}
+    `;
+  }
+
+  notificar(`✅ ${total} lançamento(s) de hoje apagado(s).`);
+  await atualizarResumoTopo();
   mostrarPagina('dashboard');
 }
 
-function mostrarPagina(pagina) {
-  document.querySelectorAll('#menuSuperior button').forEach(btn => btn.classList.remove('ativo'));
-  if (event && event.target) event.target.classList.add('ativo');
+async function limparBaseOperacional(apagarTudo = false) {
+  if (!usuarioAtual) return;
+
+  const colecoes = obterColecoesManutencao();
+  if (!colecoes.length) {
+    notificar('⚠️ Informe pelo menos uma coleção para limpeza.', 'error');
+    return;
+  }
+
+  const textoConfirmacao = apagarTudo ? 'ZERAR BASE' : 'LIMPAR MEUS DADOS';
+  const mensagem = apagarTudo
+    ? `ATENÇÃO: isso apagará TODOS os documentos das coleções listadas e tentará também subcoleções com esses nomes. Digite ${textoConfirmacao} para continuar.`
+    : `Isso tentará apagar documentos do usuário logado usando vários campos possíveis: usuarioId, userId, uid, email etc. Digite ${textoConfirmacao} para continuar.`;
+
+  const digitado = prompt(mensagem);
+  if (digitado !== textoConfirmacao) {
+    notificar('Operação cancelada.');
+    return;
+  }
+
+  const resultado = [];
+  let total = 0;
+
+  for (const colecao of colecoes) {
+    try {
+      let qtd = 0;
+
+      if (apagarTudo) {
+        qtd += await apagarColecaoInteira(colecao);
+        qtd += await apagarGrupoDeSubcolecao(colecao);
+      } else {
+        const r = await apagarColecaoPorUsuario(colecao);
+        qtd += r.total;
+      }
+
+      total += qtd;
+      resultado.push(`✅ ${colecao}: ${qtd}`);
+    } catch (e) {
+      resultado.push(`❌ ${colecao}: ${e.message}`);
+    }
+  }
+
+  const saida = document.getElementById('resultadoLimpeza');
+  if (saida) {
+    saida.innerHTML = `
+      <strong>Resultado da limpeza:</strong><br>
+      ${resultado.map(linha => escapeHtml(linha)).join('<br>')}
+      <br><br><strong>Total apagado:</strong> ${total}
+      <br><br>
+      <small>
+        Se uma coleção aparecer com erro de permissão, a regra do Firestore está bloqueando exclusão desses documentos pelo usuário atual.
+        Nesse caso, use uma conta administradora ou apague pela Console do Firebase.
+      </small>
+    `;
+  }
+
+  notificar(`✅ Limpeza concluída. ${total} registro(s) apagado(s).`);
+  await atualizarResumoTopo();
+}
+
+async function limparHistoricosRevendasCustos() {
+  if (!usuarioAtual) return;
+
+  const confirmar = prompt(
+    'Esta rotina apaga especialmente custos, vendas, revendas e históricos em várias variações de nome. Digite APAGAR TESTES para continuar.'
+  );
+
+  if (confirmar !== 'APAGAR TESTES') {
+    notificar('Operação cancelada.');
+    return;
+  }
+
+  const resultado = [];
+  let total = 0;
+
+  for (const colecao of COLECOES_LIMPEZA_CRITICA) {
+    try {
+      let qtd = 0;
+
+      // Primeiro tenta apagar tudo, para alcançar dados de teste sem usuarioId.
+      try {
+        qtd += await apagarColecaoInteira(colecao);
+      } catch (e) {
+        // Se a regra bloquear apagar tudo, tenta pelos campos de usuário.
+        const parcial = await apagarColecaoPorUsuario(colecao);
+        qtd += parcial.total;
+      }
+
+      // Também tenta subcoleções com os mesmos nomes.
+      try {
+        qtd += await apagarGrupoDeSubcolecao(colecao);
+      } catch (e) {
+        // Subcoleção bloqueada ou inexistente: segue para a próxima.
+      }
+
+      total += qtd;
+      resultado.push(`✅ ${colecao}: ${qtd}`);
+    } catch (e) {
+      resultado.push(`❌ ${colecao}: ${e.message}`);
+    }
+  }
+
+  const saida = document.getElementById('resultadoLimpeza');
+  if (saida) {
+    saida.innerHTML = `
+      <strong>Resultado da limpeza crítica:</strong><br>
+      ${resultado.map(linha => escapeHtml(linha)).join('<br>')}
+      <br><br><strong>Total apagado:</strong> ${total}
+    `;
+  }
+
+  notificar(`✅ Limpeza crítica concluída. ${total} registro(s) apagado(s).`);
+  await atualizarResumoTopo();
+}
+
+async function diagnosticarColecoes() {
+  if (!usuarioAtual) return;
+
+  const colecoes = obterColecoesManutencao();
+  const resultado = [];
+
+  for (const colecao of colecoes) {
+    try {
+      const qtd = await contarConsultaSegura(() => db.collection(colecao));
+      resultado.push(`📁 ${colecao}: ${qtd} documento(s) visível(is)`);
+    } catch (e) {
+      resultado.push(`⚠️ ${colecao}: ${e.message}`);
+    }
+  }
+
+  const saida = document.getElementById('resultadoLimpeza');
+  if (saida) {
+    saida.innerHTML = `
+      <strong>Diagnóstico das coleções listadas:</strong><br>
+      ${resultado.map(linha => escapeHtml(linha)).join('<br>')}
+      <br><br>
+      <small>O diagnóstico só mostra documentos que as regras do Firestore permitem ler com o usuário atual.</small>
+    `;
+  }
+}
+
+// ============================================
+// INICIAR APP
+// ============================================
+
+async function iniciarApp() {
+  await atualizarResumoTopo();
+
+  // Buscar dados do usuário
+  perfilUsuarioAtual = null;
+  try {
+    const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+    if (doc.exists) {
+      perfilUsuarioAtual = doc.data();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  document.getElementById('usuarioLogado').textContent =
+    perfilUsuarioAtual?.nome || usuarioAtual.email || 'Usuário';
+
+  let menu = document.getElementById('menuSuperior');
+  let paginas = ['dashboard', 'aves', 'ovos', 'racao', 'medicacao', 'mortalidade', 'custos', 'custo-unitario', 'relatorios', 'manutencao'];
+  let nomes = ['📊 Dashboard', '🐔 Aves', '🥚 Ovos', '🌾 Ração', '💊 Medicação', '⚠️ Mortalidade', '💰 Custos', '📈 Custo Unitário', '📄 Relatórios', '🧹 Manutenção'];
+
+  // Verificar se o usuário tem permissão de admin
+  if (perfilUsuarioAtual?.funcao === 'diretor') {
+    paginas.push('usuarios');
+    nomes.push('👤 Usuários');
+  }
+
+  menu.innerHTML = '';
+  for (let i = 0; i < paginas.length; i++) {
+    menu.innerHTML += `<button data-pagina="${paginas[i]}" onclick="mostrarPagina('${paginas[i]}', this)">${nomes[i]}</button>`;
+  }
+
+  atualizarStatusFirebase(true);
+  mostrarPagina('dashboard');
+}
+
+// ============================================
+// NAVEGAÇÃO
+// ============================================
+
+let paginaAtual = 'dashboard';
+
+function mostrarPagina(pagina, botao = null) {
+  paginaAtual = pagina;
+  document.querySelectorAll('#menuSuperior button').forEach(btn => {
+    btn.classList.remove('ativo');
+    if (!botao && btn.dataset.pagina === pagina) btn.classList.add('ativo');
+  });
+  if (botao) botao.classList.add('ativo');
   
   let titulos = {
-    dashboard: 'Dashboard',
-    aves: 'Controle de Aves',
-    ovos: 'Coleta de Ovos',
-    racao: 'Ração e Água',
-    medicacao: 'Medicação',
-    mortalidade: 'Mortalidade',
-    custos: 'Custos',
-    'custo-unitario': 'Custo Unitário',
-    relatorios: 'Relatórios',
-    usuarios: 'Usuários'
+    dashboard: '📊 Dashboard',
+    aves: '🐔 Controle de Aves',
+    ovos: '🥚 Coleta de Ovos',
+    racao: '🌾 Ração e Água',
+    medicacao: '💊 Medicação',
+    mortalidade: '⚠️ Mortalidade',
+    custos: '💰 Custos e Despesas',
+    'custo-unitario': '📈 Custo Unitário',
+    relatorios: '📄 Relatórios',
+    usuarios: '👤 Usuários',
+    manutencao: '🧹 Manutenção da Base'
   };
   
   document.getElementById('tituloPagina').textContent = titulos[pagina] || 'OVONORTE';
   
   let container = document.getElementById('conteudoArea');
+  container.innerHTML = '<div class="loading">Carregando...</div>';
   
   if (pagina === 'dashboard') renderDashboard(container);
   else if (pagina === 'aves') renderAves(container);
@@ -496,32 +1228,107 @@ function mostrarPagina(pagina) {
   else if (pagina === 'custo-unitario') renderCustoUnitario(container);
   else if (pagina === 'relatorios') renderRelatorios(container);
   else if (pagina === 'usuarios') renderUsuarios(container);
+  else if (pagina === 'manutencao') renderManutencao(container);
 }
 
 // ============================================
 // DASHBOARD
 // ============================================
 
-function renderDashboard(container) {
-  let aves = totalAves();
-  let hoje = new Date().toISOString().split('T')[0];
-  let mesInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+async function renderDashboard(container) {
+  const aves = await getTotalAves();
+  const ovos = await getTotalOvos();
+  const custos = await getTotalCustos();
   
-  let ovosHoje = db.ovos.filter(o => o.data === hoje).reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
-  let ovosMes = db.ovos.filter(o => o.data >= mesInicio).reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
-  let custosMes = db.custos.filter(c => c.data >= mesInicio).reduce((s,c) => s + (c.valor||0), 0);
-  let custoPorAve = aves > 0 ? custosMes / aves : 0;
-  let custoPorOvo = ovosMes > 0 ? custosMes / ovosMes : 0;
+  const hoje = hojeISO();
+  const mesInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
   
+  // Buscar ovos do mês
+  let ovosMes = 0;
+  try {
+    const snapshot = await db.collection('ovos')
+      .where('usuarioId', '==', usuarioAtual.uid)
+      .where('data', '>=', mesInicio)
+      .get();
+    snapshot.forEach(doc => {
+      const o = doc.data();
+      ovosMes += (o.inteiros || 0) + (o.trincados || 0);
+    });
+  } catch (e) {}
+
+  // Buscar custos do mês
+  let custosMes = 0;
+  try {
+    const snapshot = await db.collection('custos')
+      .where('usuarioId', '==', usuarioAtual.uid)
+      .where('data', '>=', mesInicio)
+      .get();
+    snapshot.forEach(doc => custosMes += (doc.data().valor || 0));
+  } catch (e) {}
+
+  const custoPorAve = aves > 0 ? custosMes / aves : 0;
+  const custoPorOvo = ovosMes > 0 ? custosMes / ovosMes : 0;
+  
+  // Buscar últimos lançamentos
+  let recentes = [];
+  try {
+    const snap = await db.collection('ovos')
+      .where('usuarioId', '==', usuarioAtual.uid)
+      .orderBy('data', 'desc')
+      .limit(5)
+      .get();
+    snap.forEach(doc => {
+      const o = doc.data();
+      recentes.push({ data: o.data, tipo: 'Coleta de Ovos', valor: `${(o.inteiros||0)+(o.trincados||0)} ovos` });
+    });
+    
+    const snap2 = await db.collection('custos')
+      .where('usuarioId', '==', usuarioAtual.uid)
+      .orderBy('data', 'desc')
+      .limit(5)
+      .get();
+    snap2.forEach(doc => {
+      const c = doc.data();
+      recentes.push({ data: c.data, tipo: c.descricao, valor: formatarMoeda(c.valor) });
+    });
+    recentes.sort((a,b) => b.data.localeCompare(a.data));
+    recentes = recentes.slice(0, 8);
+  } catch (e) {}
+
   container.innerHTML = `
     <div class="kpis">
       <div class="kpi"><div class="kpi-label">Aves Ativas</div><div class="kpi-valor">${aves}</div></div>
-      <div class="kpi"><div class="kpi-label">Ovos Hoje</div><div class="kpi-valor">${ovosHoje}</div></div>
-      <div class="kpi"><div class="kpi-label">Ovos no Mês</div><div class="kpi-valor">${ovosMes}</div></div>
+      <div class="kpi"><div class="kpi-label">Total Ovos</div><div class="kpi-valor">${ovos}</div></div>
+      <div class="kpi"><div class="kpi-label">Total Custos</div><div class="kpi-valor">${formatarMoeda(custos)}</div></div>
       <div class="kpi"><div class="kpi-label">Custo por Ave</div><div class="kpi-valor">${formatarMoeda(custoPorAve)}</div></div>
       <div class="kpi"><div class="kpi-label">Custo por Ovo</div><div class="kpi-valor">${formatarMoeda(custoPorOvo)}</div></div>
+      <div class="kpi"><div class="kpi-label">Ovos no Mês</div><div class="kpi-valor">${ovosMes}</div></div>
     </div>
-    <div class="card"><h3>📊 Bem-vindo ao OVONORTE</h3><p>Utilize os menus para gerenciar sua produção avícola.</p></div>
+    
+    <div class="card">
+      <h3>📊 Dashboard</h3>
+      <p>Bem-vindo ao OVONORTE! Utilize os menus para gerenciar sua produção avícola.</p>
+      <p style="margin-top:12px; font-size:12px; color:#888;">
+        💡 <strong>Dica:</strong> Comece cadastrando suas aves e depois registre as coletas de ovos.
+      </p>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="apagarLancamentosHoje()">🧹 Apagar lançamentos de hoje</button>
+        <button class="btn-danger" onclick="mostrarPagina('manutencao')">⚠️ Limpar histórico/testes</button>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3>📋 Últimos Lançamentos</h3>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Valor</th></tr></thead>
+          <tbody>
+            ${recentes.length === 0 ? '<tr><td colspan="3" style="text-align:center; color:#888;">Nenhum lançamento</td></tr>' :
+            recentes.map(r => `<tr><td>${formatarData(r.data)}</td><td>${r.tipo}</td><td><strong>${r.valor}</strong></td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
   `;
 }
 
@@ -529,76 +1336,89 @@ function renderDashboard(container) {
 // AVES
 // ============================================
 
-function renderAves(container) {
-  let lista = [...db.aves].sort((a,b) => b.data.localeCompare(a.data));
+async function renderAves(container) {
+  const lista = await carregarDados('aves');
+  const aves = await getTotalAves();
   
   container.innerHTML = `
     <div class="grid2">
       <div class="card">
         <h3>➕ Registrar Movimentação</h3>
         <div class="formulario">
-          <div class="campo"><label>Data</label><input type="date" id="aveData" value="${new Date().toISOString().split('T')[0]}"></div>
-          <div class="campo"><label>Tipo</label><select id="aveTipo"><option value="entrada">Entrada (Novas Aves)</option><option value="saida">Saída (Venda)</option></select></div>
-          <div class="campo"><label>Quantidade</label><input type="number" id="aveQtd" min="1"></div>
-          <div class="campo"><label>Observação</label><textarea id="aveObs" rows="2"></textarea></div>
-          <button class="btn-primary" onclick="salvarAve()">Registrar Movimentação</button>
+          <div class="campo"><label>📅 Data</label><input type="date" id="aveData" value="${hojeISO()}"></div>
+          <div class="campo"><label>📌 Tipo</label><select id="aveTipo"><option value="entrada">Entrada (Novas Aves)</option><option value="saida">Saída (Venda/Descarte)</option></select></div>
+          <div class="campo"><label>🔢 Quantidade</label><input type="number" id="aveQtd" min="1"></div>
+          <div class="campo"><label>📝 Observação</label><textarea id="aveObs" rows="2"></textarea></div>
+          <button class="btn-primary" onclick="salvarAve()">✅ Registrar Movimentação</button>
         </div>
       </div>
       <div class="card">
-        <h3>📋 Histórico</h3>
+        <h3>📋 Histórico (Total: ${aves} aves)</h3>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Data</th><th>Tipo</th><th>Qtd</th><th>Obs</th></tr></thead>
+            <thead><tr><th>Data</th><th>Tipo</th><th>Qtd</th><th>Obs</th><th>Ações</th></tr></thead>
             <tbody>
-              ${lista.map(a => `<tr><td>${formatarData(a.data)}</td><td>${a.tipo === 'entrada' ? '➕ Entrada' : '➖ Saída'}</td><td>${a.quantidade}</td><td>${a.obs || '—'}</td></tr>`).join('')}
+              ${lista.length === 0 ? '<tr><td colspan="5" style="text-align:center; color:#888;">Nenhuma movimentação</td></tr>' :
+              lista.map(a => `<tr><td>${formatarData(a.data)}</td><td>${a.tipo === 'entrada' ? '➕ Entrada' : '➖ Saída'}</td><td>${a.quantidade}</td><td>${escapeHtml(a.obs) || '—'}</td><td class="acoes">${botaoExcluir('aves', a.id, 'movimentação de aves')}</td></tr>`).join('')}
             </tbody>
           </table>
         </div>
-        <p style="margin-top:16px;"><strong>Total atual:</strong> ${totalAves()} aves</p>
       </div>
     </div>
   `;
 }
 
-function salvarAve() {
-  let data = document.getElementById('aveData').value;
-  let tipo = document.getElementById('aveTipo').value;
-  let qtd = parseInt(document.getElementById('aveQtd').value);
-  let obs = document.getElementById('aveObs').value;
-  if (!qtd) return notificar('Informe a quantidade');
-  db.aves.push({ id: Date.now().toString(), data, tipo, quantidade: qtd, obs });
-  salvarDB();
-  notificar('Movimentação registrada');
-  mostrarPagina('aves');
+async function salvarAve() {
+  const data = document.getElementById('aveData').value;
+  const tipo = document.getElementById('aveTipo').value;
+  const qtd = parseInt(document.getElementById('aveQtd').value);
+  const obs = document.getElementById('aveObs').value;
+  
+  if (!qtd || qtd <= 0) {
+    notificar('⚠️ Informe a quantidade');
+    return;
+  }
+  
+  const ok = await salvarDado('aves', { data, tipo, quantidade: qtd, obs });
+  if (ok) {
+    notificar('✅ Movimentação registrada!');
+    document.getElementById('aveQtd').value = '';
+    document.getElementById('aveObs').value = '';
+    mostrarPagina('aves');
+  } else {
+    notificar('❌ Erro ao registrar', 'error');
+  }
 }
 
 // ============================================
-// OVOS - Formulário vertical
+// OVOS
 // ============================================
 
-function renderOvos(container) {
-  let hoje = new Date().toISOString().split('T')[0];
-  let lista = [...db.ovos].sort((a,b) => b.data.localeCompare(a.data));
+async function renderOvos(container) {
+  const lista = await carregarDados('ovos');
+  const total = await getTotalOvos();
+  const hoje = hojeISO();
   
   container.innerHTML = `
     <div class="grid2">
       <div class="card">
         <h3>📝 Registrar Coleta</h3>
         <div class="formulario">
-          <div class="campo"><label>Data da Coleta</label><input type="date" id="ovoData" value="${hoje}"></div>
-          <div class="campo"><label>Ovos Inteiros</label><input type="number" id="ovoInteiros" value="0" min="0"></div>
-          <div class="campo"><label>Ovos Trincados</label><input type="number" id="ovoTrincados" value="0" min="0"></div>
-          <div class="campo"><label>Observações</label><textarea id="ovoObs" rows="3" placeholder="Observações sobre a coleta..."></textarea></div>
-          <button class="btn-primary" onclick="salvarOvo()">Registrar Coleta</button>
+          <div class="campo"><label>📅 Data da Coleta</label><input type="date" id="ovoData" value="${hoje}"></div>
+          <div class="campo"><label>🥚 Ovos Inteiros</label><input type="number" id="ovoInteiros" value="0" min="0"></div>
+          <div class="campo"><label>🥚 Ovos Trincados</label><input type="number" id="ovoTrincados" value="0" min="0"></div>
+          <div class="campo"><label>📝 Observações</label><textarea id="ovoObs" rows="3" placeholder="Observações sobre a coleta..."></textarea></div>
+          <button class="btn-primary" onclick="salvarOvo()">✅ Registrar Coleta</button>
         </div>
       </div>
       <div class="card">
-        <h3>📋 Histórico de Coletas</h3>
+        <h3>📋 Histórico de Coletas (Total: ${total} ovos)</h3>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Data</th><th>Inteiros</th><th>Trincados</th><th>Total</th></tr></thead>
+            <thead><tr><th>Data</th><th>Inteiros</th><th>Trincados</th><th>Total</th><th>Ações</th></tr></thead>
             <tbody>
-              ${lista.map(o => `<tr><td>${formatarData(o.data)}</td><td>${o.inteiros}</td><td>${o.trincados}</td><td><strong>${o.inteiros + o.trincados}</strong></td></tr>`).join('')}
+              ${lista.length === 0 ? '<tr><td colspan="5" style="text-align:center; color:#888;">Nenhuma coleta</td></tr>' :
+              lista.map(o => `<tr><td>${formatarData(o.data)}</td><td>${o.inteiros}</td><td>${o.trincados}</td><td><strong>${(o.inteiros || 0) + (o.trincados || 0)}</strong></td><td class="acoes">${botaoExcluir('ovos', o.id, 'coleta de ovos')}</td></tr>`).join('')}
             </tbody>
           </table>
         </div>
@@ -607,29 +1427,37 @@ function renderOvos(container) {
   `;
 }
 
-function salvarOvo() {
-  let data = document.getElementById('ovoData').value;
-  let inteiros = parseInt(document.getElementById('ovoInteiros').value) || 0;
-  let trincados = parseInt(document.getElementById('ovoTrincados').value) || 0;
-  let obs = document.getElementById('ovoObs').value;
-  if (inteiros + trincados === 0) return notificar('Informe a quantidade de ovos');
-  db.ovos.push({ id: Date.now().toString(), data, inteiros, trincados, obs });
-  salvarDB();
-  notificar('Coleta registrada com sucesso!');
-  document.getElementById('ovoInteiros').value = '0';
-  document.getElementById('ovoTrincados').value = '0';
-  document.getElementById('ovoObs').value = '';
-  mostrarPagina('ovos');
+async function salvarOvo() {
+  const data = document.getElementById('ovoData').value;
+  const inteiros = parseInt(document.getElementById('ovoInteiros').value) || 0;
+  const trincados = parseInt(document.getElementById('ovoTrincados').value) || 0;
+  const obs = document.getElementById('ovoObs').value;
+  
+  if (inteiros + trincados === 0) {
+    notificar('⚠️ Informe a quantidade de ovos');
+    return;
+  }
+  
+  const ok = await salvarDado('ovos', { data, inteiros, trincados, obs });
+  if (ok) {
+    notificar('✅ Coleta registrada com sucesso!');
+    document.getElementById('ovoInteiros').value = '0';
+    document.getElementById('ovoTrincados').value = '0';
+    document.getElementById('ovoObs').value = '';
+    mostrarPagina('ovos');
+  } else {
+    notificar('❌ Erro ao registrar', 'error');
+  }
 }
 
 // ============================================
-// RAÇÃO - Formulário vertical
+// RAÇÃO
 // ============================================
 
-function renderRacao(container) {
-  let hoje = new Date().toISOString().split('T')[0];
-  let aves = totalAves();
-  let lista = [...db.racoes].sort((a,b) => b.data.localeCompare(a.data));
+async function renderRacao(container) {
+  const lista = await carregarDados('racoes');
+  const aves = await getTotalAves();
+  const hoje = hojeISO();
   
   container.innerHTML = `
     <div class="grid2">
@@ -640,25 +1468,26 @@ function renderRacao(container) {
           <div class="rateio-row">O custo será distribuído igualmente entre todas as aves ativas</div>
         </div>
         <div class="formulario">
-          <div class="campo"><label>Data do Consumo</label><input type="date" id="raData" value="${hoje}"></div>
-          <div class="campo"><label>Tipo de Ração</label><select id="raTipo"><option>Postura Fase 1</option><option>Postura Fase 2</option><option>Crescimento</option></select></div>
-          <div class="campo"><label>Quantidade de Ração (kg)</label><input type="number" id="raKg" step="0.1" value="0"></div>
-          <div class="campo"><label>Custo da Ração (R$)</label><input type="number" id="raCusto" step="0.01" value="0"></div>
-          <div class="campo"><label>Volume de Água (L)</label><input type="number" id="aguaL" step="0.1" value="0"></div>
-          <div class="campo"><label>Custo da Água (R$)</label><input type="number" id="aguaCusto" step="0.01" value="0"></div>
-          <button class="btn-primary" onclick="salvarRacao()">Registrar Consumo</button>
+          <div class="campo"><label>📅 Data do Consumo</label><input type="date" id="raData" value="${hoje}"></div>
+          <div class="campo"><label>📌 Tipo de Ração</label><select id="raTipo"><option>Postura Fase 1</option><option>Postura Fase 2</option><option>Crescimento</option></select></div>
+          <div class="campo"><label>⚖️ Quantidade (kg)</label><input type="number" id="raKg" step="0.1" value="0"></div>
+          <div class="campo"><label>💰 Custo Ração (R$)</label><input type="number" id="raCusto" step="0.01" value="0"></div>
+          <div class="campo"><label>💧 Água (L)</label><input type="number" id="aguaL" step="0.1" value="0"></div>
+          <div class="campo"><label>💰 Custo Água (R$)</label><input type="number" id="aguaCusto" step="0.01" value="0"></div>
+          <button class="btn-primary" onclick="salvarRacao()">✅ Registrar Consumo</button>
         </div>
       </div>
       <div class="card">
         <h3>📋 Histórico de Consumo</h3>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Data</th><th>Ração</th><th>Custo</th><th>Custo/Ave</th></tr></thead>
+            <thead><tr><th>Data</th><th>Ração</th><th>Custo</th><th>Custo/Ave</th><th>Ações</th></tr></thead>
             <tbody>
-              ${lista.map(r => {
-                let custoTotal = (r.raCusto||0) + (r.aguaCusto||0);
-                let custoPorAve = aves > 0 ? custoTotal/aves : 0;
-                return `<tr><td>${formatarData(r.data)}</td><td>${(r.raKg||0).toFixed(1)} kg</td><td>${formatarMoeda(custoTotal)}</td><td>${formatarMoeda(custoPorAve)}</td></tr>`;
+              ${lista.length === 0 ? '<tr><td colspan="5" style="text-align:center; color:#888;">Nenhum consumo</td></tr>' :
+              lista.map(r => {
+                const custoTotal = (r.raCusto||0) + (r.aguaCusto||0);
+                const custoPorAve = aves > 0 ? custoTotal/aves : 0;
+                return `<tr><td>${formatarData(r.data)}</td><td>${(r.raKg||0).toFixed(1)} kg</td><td>${formatarMoeda(custoTotal)}</td><td>${formatarMoeda(custoPorAve)}</td><td class="acoes">${botaoExcluir('racoes', r.id, 'consumo de ração/água')}</td></tr>`;
               }).join('')}
             </tbody>
           </table>
@@ -668,27 +1497,50 @@ function renderRacao(container) {
   `;
 }
 
-function salvarRacao() {
-  let data = document.getElementById('raData').value;
-  let raTipo = document.getElementById('raTipo').value;
-  let raKg = parseFloat(document.getElementById('raKg').value) || 0;
-  let raCusto = parseFloat(document.getElementById('raCusto').value) || 0;
-  let aguaL = parseFloat(document.getElementById('aguaL').value) || 0;
-  let aguaCusto = parseFloat(document.getElementById('aguaCusto').value) || 0;
-  
-  if (raKg === 0 && aguaL === 0) return notificar('Informe pelo menos um consumo');
-  
-  db.racoes.push({ id: Date.now().toString(), data, tipo: raTipo, raKg, raCusto, aguaL, aguaCusto });
-  
+async function salvarRacao() {
+  const data = document.getElementById('raData').value;
+  const raTipo = document.getElementById('raTipo').value;
+  const raKg = parseFloat(document.getElementById('raKg').value) || 0;
+  const raCusto = parseFloat(document.getElementById('raCusto').value) || 0;
+  const aguaL = parseFloat(document.getElementById('aguaL').value) || 0;
+  const aguaCusto = parseFloat(document.getElementById('aguaCusto').value) || 0;
+
+  if (raKg === 0 && aguaL === 0) {
+    notificar('⚠️ Informe pelo menos um consumo');
+    return;
+  }
+
+  const registroRef = await salvarDado('racoes', { data, tipo: raTipo, raKg, raCusto, aguaL, aguaCusto });
+  if (!registroRef) {
+    notificar('❌ Erro ao registrar', 'error');
+    return;
+  }
+
+  // Registrar custos separadamente, vinculando à origem para exclusão futura.
   if (raCusto > 0) {
-    db.custos.push({ id: Date.now().toString()+'_r', data, descricao: `Ração ${raTipo} (${raKg}kg)`, valor: raCusto });
+    await db.collection('custos').add({
+      data,
+      descricao: `Ração ${raTipo} (${raKg}kg)`,
+      valor: raCusto,
+      usuarioId: usuarioAtual.uid,
+      origemColecao: 'racoes',
+      origemId: registroRef.id,
+      criadoEm: new Date().toISOString()
+    });
   }
   if (aguaCusto > 0) {
-    db.custos.push({ id: Date.now().toString()+'_a', data, descricao: `Água (${aguaL}L)`, valor: aguaCusto });
+    await db.collection('custos').add({
+      data,
+      descricao: `Água (${aguaL}L)`,
+      valor: aguaCusto,
+      usuarioId: usuarioAtual.uid,
+      origemColecao: 'racoes',
+      origemId: registroRef.id,
+      criadoEm: new Date().toISOString()
+    });
   }
-  
-  salvarDB();
-  notificar('Consumo registrado com sucesso!');
+
+  notificar('✅ Consumo registrado com sucesso!');
   document.getElementById('raKg').value = '0';
   document.getElementById('raCusto').value = '0';
   document.getElementById('aguaL').value = '0';
@@ -697,33 +1549,35 @@ function salvarRacao() {
 }
 
 // ============================================
-// MEDICAÇÃO - Formulário vertical
+// MEDICAÇÃO
 // ============================================
 
-function renderMedicacao(container) {
-  let hoje = new Date().toISOString().split('T')[0];
+async function renderMedicacao(container) {
+  const lista = await carregarDados('medicacoes');
+  const hoje = hojeISO();
   
   container.innerHTML = `
     <div class="grid2">
       <div class="card">
         <h3>💊 Registrar Medicação</h3>
         <div class="formulario">
-          <div class="campo"><label>Data da Aplicação</label><input type="date" id="medData" value="${hoje}"></div>
-          <div class="campo"><label>Produto</label><input type="text" id="medProduto" placeholder="Nome do medicamento"></div>
-          <div class="campo"><label>Finalidade</label><select id="medFinalidade"><option>Antifúngico</option><option>Vacina</option><option>Antibiótico</option><option>Vitaminas</option><option>Outro</option></select></div>
-          <div class="campo"><label>Custo Total (R$)</label><input type="number" id="medCusto" step="0.01"></div>
-          <div class="campo"><label>Aves Tratadas</label><input type="number" id="medAves" placeholder="Deixe em branco para todas"></div>
-          <div class="campo"><label>Observações</label><textarea id="medObs" rows="2" placeholder="Observações sobre a aplicação..."></textarea></div>
-          <button class="btn-primary" onclick="salvarMedicacao()">Registrar Medicação</button>
+          <div class="campo"><label>📅 Data da Aplicação</label><input type="date" id="medData" value="${hoje}"></div>
+          <div class="campo"><label>🧪 Produto</label><input type="text" id="medProduto" placeholder="Nome do medicamento"></div>
+          <div class="campo"><label>🎯 Finalidade</label><select id="medFinalidade"><option>Antifúngico</option><option>Vacina</option><option>Antibiótico</option><option>Vitaminas</option><option>Outro</option></select></div>
+          <div class="campo"><label>💰 Custo Total (R$)</label><input type="number" id="medCusto" step="0.01"></div>
+          <div class="campo"><label>🐔 Aves Tratadas</label><input type="number" id="medAves" placeholder="Deixe em branco para todas"></div>
+          <div class="campo"><label>📝 Observações</label><textarea id="medObs" rows="2" placeholder="Observações sobre a aplicação..."></textarea></div>
+          <button class="btn-primary" onclick="salvarMedicacao()">✅ Registrar Medicação</button>
         </div>
       </div>
       <div class="card">
         <h3>📋 Histórico de Medicações</h3>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Data</th><th>Produto</th><th>Finalidade</th><th>Custo</th></tr></thead>
+            <thead><tr><th>Data</th><th>Produto</th><th>Finalidade</th><th>Custo</th><th>Ações</th></tr></thead>
             <tbody>
-              ${db.medicacoes.map(m => `<tr><td>${formatarData(m.data)}</td><td><strong>${m.produto}</strong></td><td>${m.finalidade}</td><td>${formatarMoeda(m.custo)}</td></tr>`).join('')}
+              ${lista.length === 0 ? '<tr><td colspan="5" style="text-align:center; color:#888;">Nenhuma medicação</td></tr>' :
+              lista.map(m => `<tr><td>${formatarData(m.data)}</td><td><strong>${escapeHtml(m.produto)}</strong></td><td>${escapeHtml(m.finalidade)}</td><td>${formatarMoeda(m.custo)}</td><td class="acoes">${botaoExcluir('medicacoes', m.id, 'medicação')}</td></tr>`).join('')}
             </tbody>
           </table>
         </div>
@@ -732,24 +1586,38 @@ function renderMedicacao(container) {
   `;
 }
 
-function salvarMedicacao() {
-  let data = document.getElementById('medData').value;
-  let produto = document.getElementById('medProduto').value;
-  let finalidade = document.getElementById('medFinalidade').value;
-  let custo = parseFloat(document.getElementById('medCusto').value) || 0;
-  let aves = parseInt(document.getElementById('medAves').value) || totalAves();
-  let obs = document.getElementById('medObs').value;
-  
-  if (!produto) return notificar('Informe o produto');
-  
-  db.medicacoes.push({ id: Date.now().toString(), data, produto, finalidade, custo, aves, obs });
-  
-  if (custo > 0) {
-    db.custos.push({ id: Date.now().toString(), data, descricao: `Medicação: ${produto}`, valor: custo });
+async function salvarMedicacao() {
+  const data = document.getElementById('medData').value;
+  const produto = document.getElementById('medProduto').value;
+  const finalidade = document.getElementById('medFinalidade').value;
+  const custo = parseFloat(document.getElementById('medCusto').value) || 0;
+  const aves = parseInt(document.getElementById('medAves').value) || await getTotalAves();
+  const obs = document.getElementById('medObs').value;
+
+  if (!produto) {
+    notificar('⚠️ Informe o produto');
+    return;
   }
-  
-  salvarDB();
-  notificar('Medicação registrada com sucesso!');
+
+  const registroRef = await salvarDado('medicacoes', { data, produto, finalidade, custo, aves, obs });
+  if (!registroRef) {
+    notificar('❌ Erro ao registrar', 'error');
+    return;
+  }
+
+  if (custo > 0) {
+    await db.collection('custos').add({
+      data,
+      descricao: `Medicação: ${produto}`,
+      valor: custo,
+      usuarioId: usuarioAtual.uid,
+      origemColecao: 'medicacoes',
+      origemId: registroRef.id,
+      criadoEm: new Date().toISOString()
+    });
+  }
+
+  notificar('✅ Medicação registrada com sucesso!');
   document.getElementById('medProduto').value = '';
   document.getElementById('medCusto').value = '';
   document.getElementById('medObs').value = '';
@@ -757,14 +1625,17 @@ function salvarMedicacao() {
 }
 
 // ============================================
-// MORTALIDADE - Formulário vertical
+// MORTALIDADE
 // ============================================
 
-function renderMortalidade(container) {
-  let hoje = new Date().toISOString().split('T')[0];
-  let totalMortes = db.mortalidades.reduce((s,m) => s + m.qtd, 0);
-  let aves = totalAves();
-  let perc = aves > 0 ? ((totalMortes / (aves + totalMortes)) * 100).toFixed(1) : 0;
+async function renderMortalidade(container) {
+  const lista = await carregarDados('mortalidades');
+  const aves = await getTotalAves();
+  const hoje = hojeISO();
+  
+  let totalMortes = 0;
+  lista.forEach(m => totalMortes += (m.qtd || 0));
+  const perc = aves > 0 ? ((totalMortes / (aves + totalMortes)) * 100).toFixed(1) : 0;
   
   container.innerHTML = `
     <div class="grid2">
@@ -775,20 +1646,21 @@ function renderMortalidade(container) {
           <div class="rateio-row"><strong>Aves atuais:</strong> ${aves}</div>
         </div>
         <div class="formulario">
-          <div class="campo"><label>Data da Ocorrência</label><input type="date" id="mortData" value="${hoje}"></div>
-          <div class="campo"><label>Quantidade de Aves Mortas</label><input type="number" id="mortQtd" min="1"></div>
-          <div class="campo"><label>Causa Provável</label><select id="mortCausa"><option>Doença</option><option>Estresse térmico</option><option>Acidente</option><option>Predador</option><option>Causa desconhecida</option></select></div>
-          <div class="campo"><label>Observações</label><textarea id="mortObs" rows="2" placeholder="Descreva os sintomas ou circunstâncias..."></textarea></div>
-          <button class="btn-primary" onclick="salvarMortalidade()">Registrar Mortalidade</button>
+          <div class="campo"><label>📅 Data da Ocorrência</label><input type="date" id="mortData" value="${hoje}"></div>
+          <div class="campo"><label>🔢 Quantidade</label><input type="number" id="mortQtd" min="1"></div>
+          <div class="campo"><label>🔍 Causa Provável</label><select id="mortCausa"><option>Doença</option><option>Estresse térmico</option><option>Acidente</option><option>Predador</option><option>Causa desconhecida</option></select></div>
+          <div class="campo"><label>📝 Observações</label><textarea id="mortObs" rows="2" placeholder="Descreva os sintomas ou circunstâncias..."></textarea></div>
+          <button class="btn-primary" onclick="salvarMortalidade()">✅ Registrar Mortalidade</button>
         </div>
       </div>
       <div class="card">
         <h3>📋 Histórico de Mortalidade</h3>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Data</th><th>Qtd</th><th>Causa</th></tr></thead>
+            <thead><tr><th>Data</th><th>Qtd</th><th>Causa</th><th>Ações</th></tr></thead>
             <tbody>
-              ${db.mortalidades.map(m => `<tr><td>${formatarData(m.data)}</td><td><strong>${m.qtd}</strong></td><td>${m.causa || '—'}</td></tr>`).join('')}
+              ${lista.length === 0 ? '<tr><td colspan="4" style="text-align:center; color:#888;">Nenhuma mortalidade</td></tr>' :
+              lista.map(m => `<tr><td>${formatarData(m.data)}</td><td><strong>${m.qtd}</strong></td><td>${escapeHtml(m.causa) || '—'}</td><td class="acoes">${botaoExcluir('mortalidades', m.id, 'mortalidade')}</td></tr>`).join('')}
             </tbody>
           </table>
         </div>
@@ -797,49 +1669,58 @@ function renderMortalidade(container) {
   `;
 }
 
-function salvarMortalidade() {
-  let data = document.getElementById('mortData').value;
-  let qtd = parseInt(document.getElementById('mortQtd').value) || 0;
-  let causa = document.getElementById('mortCausa').value;
-  let obs = document.getElementById('mortObs').value;
-  if (qtd <= 0) return notificar('Informe a quantidade');
-  db.mortalidades.push({ id: Date.now().toString(), data, qtd, causa, obs });
-  salvarDB();
-  notificar('Mortalidade registrada');
-  document.getElementById('mortQtd').value = '';
-  document.getElementById('mortObs').value = '';
-  mostrarPagina('mortalidade');
+async function salvarMortalidade() {
+  const data = document.getElementById('mortData').value;
+  const qtd = parseInt(document.getElementById('mortQtd').value) || 0;
+  const causa = document.getElementById('mortCausa').value;
+  const obs = document.getElementById('mortObs').value;
+  
+  if (qtd <= 0) {
+    notificar('⚠️ Informe a quantidade');
+    return;
+  }
+  
+  const ok = await salvarDado('mortalidades', { data, qtd, causa, obs });
+  if (ok) {
+    notificar('✅ Mortalidade registrada');
+    document.getElementById('mortQtd').value = '';
+    document.getElementById('mortObs').value = '';
+    mostrarPagina('mortalidade');
+  } else {
+    notificar('❌ Erro ao registrar', 'error');
+  }
 }
 
 // ============================================
-// CUSTOS - Formulário vertical
+// CUSTOS
 // ============================================
 
-function renderCustos(container) {
-  let hoje = new Date().toISOString().split('T')[0];
-  let lista = [...db.custos].sort((a,b) => b.data.localeCompare(a.data));
-  let total = db.custos.reduce((s,c) => s + (c.valor||0), 0);
+async function renderCustos(container) {
+  const lista = await carregarDados('custos');
+  const total = await getTotalCustos();
+  const hoje = hojeISO();
   
   container.innerHTML = `
     <div class="grid2">
       <div class="card">
         <h3>💰 Lançar Custo/Despesa</h3>
         <div class="formulario">
-          <div class="campo"><label>Data do Gasto</label><input type="date" id="custoData" value="${hoje}"></div>
-          <div class="campo"><label>Categoria</label><select id="custoCat"><option>racao</option><option>agua</option><option>medicamento</option><option>energia</option><option>mao_de_obra</option><option>manutencao</option><option>outros</option></select></div>
-          <div class="campo"><label>Descrição</label><input type="text" id="custoDesc" placeholder="Descreva o gasto detalhadamente"></div>
-          <div class="campo"><label>Valor (R$)</label><input type="number" id="custoValor" step="0.01" placeholder="0,00"></div>
-          <div class="campo"><label>Fornecedor</label><input type="text" id="custoFornecedor" placeholder="Nome do fornecedor (opcional)"></div>
-          <button class="btn-primary" onclick="salvarCusto()">Registrar Custo</button>
+          <div class="campo"><label>📅 Data do Gasto</label><input type="date" id="custoData" value="${hoje}"></div>
+          <div class="campo"><label>📌 Categoria</label><select id="custoCat"><option>ração</option><option>água</option><option>medicamento</option><option>energia</option><option>mão de obra</option><option>manutenção</option><option>outros</option></select></div>
+          <div class="campo"><label>📝 Descrição</label><input type="text" id="custoDesc" placeholder="Descreva o gasto detalhadamente"></div>
+          <div class="campo"><label>💰 Valor (R$)</label><input type="number" id="custoValor" step="0.01" placeholder="0,00"></div>
+          <div class="campo"><label>🏢 Fornecedor</label><input type="text" id="custoFornecedor" placeholder="Nome do fornecedor (opcional)"></div>
+          <button class="btn-primary" onclick="salvarCusto()">✅ Registrar Custo</button>
         </div>
       </div>
       <div class="card">
         <h3>📋 Últimos Custos (Total: ${formatarMoeda(total)})</h3>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead>
+            <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr></thead>
             <tbody>
-              ${lista.slice(0,20).map(c => `<tr><td>${formatarData(c.data)}</span></td><td><strong>${c.descricao}</strong></span></td><td class="kpi-valor" style="font-size:14px">${formatarMoeda(c.valor)}</span></td></tr>`).join('')}
+              ${lista.length === 0 ? '<tr><td colspan="4" style="text-align:center; color:#888;">Nenhum custo</td></tr>' :
+              lista.slice(0,20).map(c => `<tr><td>${formatarData(c.data)}</td><td><strong>${escapeHtml(c.descricao)}</strong></td><td style="font-weight:bold;">${formatarMoeda(c.valor)}</td><td class="acoes">${botaoExcluir('custos', c.id, 'custo/despesa')}</td></tr>`).join('')}
             </tbody>
           </table>
         </div>
@@ -848,32 +1729,41 @@ function renderCustos(container) {
   `;
 }
 
-function salvarCusto() {
-  let data = document.getElementById('custoData').value;
-  let cat = document.getElementById('custoCat').value;
-  let desc = document.getElementById('custoDesc').value;
-  let valor = parseFloat(document.getElementById('custoValor').value) || 0;
-  let fornecedor = document.getElementById('custoFornecedor').value;
-  if (!desc || valor <= 0) return notificar('Preencha descrição e valor');
-  db.custos.push({ id: Date.now().toString(), data, categoria: cat, descricao: desc, valor, fornecedor });
-  salvarDB();
-  notificar('Custo registrado com sucesso!');
-  document.getElementById('custoDesc').value = '';
-  document.getElementById('custoValor').value = '';
-  document.getElementById('custoFornecedor').value = '';
-  mostrarPagina('custos');
+async function salvarCusto() {
+  const data = document.getElementById('custoData').value;
+  const cat = document.getElementById('custoCat').value;
+  const desc = document.getElementById('custoDesc').value;
+  const valor = parseFloat(document.getElementById('custoValor').value) || 0;
+  const fornecedor = document.getElementById('custoFornecedor').value;
+  
+  if (!desc || valor <= 0) {
+    notificar('⚠️ Preencha descrição e valor');
+    return;
+  }
+  
+  const ok = await salvarDado('custos', { data, categoria: cat, descricao: desc, valor, fornecedor });
+  if (ok) {
+    notificar('✅ Custo registrado com sucesso!');
+    document.getElementById('custoDesc').value = '';
+    document.getElementById('custoValor').value = '';
+    document.getElementById('custoFornecedor').value = '';
+    mostrarPagina('custos');
+  } else {
+    notificar('❌ Erro ao registrar', 'error');
+  }
 }
 
 // ============================================
 // CUSTO UNITÁRIO
 // ============================================
 
-function renderCustoUnitario(container) {
-  let aves = totalAves();
-  let totalOvos = db.ovos.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
-  let totalCustos = db.custos.reduce((s,c) => s + (c.valor||0), 0);
-  let custoPorAve = aves > 0 ? totalCustos / aves : 0;
-  let custoPorOvo = totalOvos > 0 ? totalCustos / totalOvos : 0;
+async function renderCustoUnitario(container) {
+  const aves = await getTotalAves();
+  const totalOvos = await getTotalOvos();
+  const totalCustos = await getTotalCustos();
+  
+  const custoPorAve = aves > 0 ? totalCustos / aves : 0;
+  const custoPorOvo = totalOvos > 0 ? totalCustos / totalOvos : 0;
   
   container.innerHTML = `
     <div class="kpis">
@@ -886,7 +1776,11 @@ function renderCustoUnitario(container) {
     <div class="card">
       <h3>📊 Análise de Custo Unitário</h3>
       <p>Este módulo apresenta os custos médios por ave e por ovo com base em todos os registros históricos.</p>
-      <p style="margin-top:16px;"><strong>📌 Interpretação:</strong> O custo por ave considera todas as despesas (ração, água, medicação, etc.) dividido pelo número de aves ativas. O custo por ovo é o valor total gasto dividido pela produção total de ovos.</p>
+      <div style="margin-top:16px; background:var(--verde-bg); padding:16px; border-radius:8px;">
+        <p><strong>📌 Interpretação:</strong></p>
+        <p>• <strong>Custo por Ave:</strong> Total de despesas ÷ Número de aves ativas</p>
+        <p>• <strong>Custo por Ovo:</strong> Total de despesas ÷ Produção total de ovos</p>
+      </div>
     </div>
   `;
 }
@@ -895,10 +1789,10 @@ function renderCustoUnitario(container) {
 // RELATÓRIOS
 // ============================================
 
-function renderRelatorios(container) {
-  let aves = totalAves();
-  let totalOvos = db.ovos.reduce((s,o) => s + (o.inteiros||0) + (o.trincados||0), 0);
-  let totalCustos = db.custos.reduce((s,c) => s + (c.valor||0), 0);
+async function renderRelatorios(container) {
+  const aves = await getTotalAves();
+  const totalOvos = await getTotalOvos();
+  const totalCustos = await getTotalCustos();
   
   container.innerHTML = `
     <div class="card">
@@ -916,20 +1810,78 @@ function renderRelatorios(container) {
 }
 
 // ============================================
-// USUÁRIOS - Formulário vertical
+// MANUTENÇÃO DA BASE
 // ============================================
 
-function renderUsuarios(container) {
+async function renderManutencao(container) {
+  const colecoesPadrao = COLECOES_OPERACIONAIS_PADRAO.join('\n');
+
+  container.innerHTML = `
+    <div class="card">
+      <h3>🧹 Limpeza de dados de teste e históricos</h3>
+      <p>
+        Use esta área para apagar dados fictícios gerados durante o desenvolvimento, incluindo históricos de vendas/revendas,
+        produção, custos, aves, ração, medicações e mortalidade.
+      </p>
+      <p style="margin-top:10px; color:#a93226;">
+        <strong>Atenção:</strong> esta rotina não apaga o login do Firebase Auth e não inclui a coleção <code>usuarios</code> por padrão,
+        para você não perder acesso ao sistema.
+      </p>
+
+      <div class="campo" style="margin-top:16px;">
+        <label>Coleções que serão limpas</label>
+        <textarea id="colecoesLimpeza" rows="14">${colecoesPadrao}</textarea>
+      </div>
+
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="diagnosticarColecoes()">🔎 Diagnosticar coleções visíveis</button>
+        <button class="btn-secondary" onclick="limparBaseOperacional(false)">🧹 Limpar dados do usuário logado</button>
+        <button class="btn-danger" onclick="limparHistoricosRevendasCustos()">🔥 Apagar históricos/revendas/custos de teste</button>
+        <button class="btn-danger" onclick="limparBaseOperacional(true)">⚠️ Zerar completamente as coleções listadas</button>
+      </div>
+
+      <div style="margin-top:16px; background:#fff8e1; padding:14px; border-radius:8px;">
+        <p><strong>Quando usar cada opção:</strong></p>
+        <p>• <strong>Diagnosticar:</strong> mostra quantos documentos o usuário logado consegue ler em cada coleção listada.</p>
+        <p>• <strong>Limpar dados do usuário logado:</strong> tenta apagar por <code>usuarioId</code>, <code>userId</code>, <code>uid</code>, <code>email</code> e outros campos comuns.</p>
+        <p>• <strong>Apagar históricos/revendas/custos:</strong> rotina específica para dados antigos de teste, inclusive documentos sem <code>usuarioId</code>, se a regra permitir.</p>
+        <p>• <strong>Zerar completamente:</strong> apaga todos os documentos das coleções listadas e também tenta subcoleções com esses nomes.</p>
+        <p>• Se ainda sobrar dado, copie exatamente o nome da coleção no Firebase Console e acrescente na lista acima. O Firestore diferencia maiúsculas/minúsculas.</p>
+      </div>
+
+      <div id="resultadoLimpeza" style="margin-top:16px; background:var(--verde-bg); padding:14px; border-radius:8px; display:block; max-height:420px; overflow:auto;">
+        Nenhuma limpeza executada nesta sessão.
+      </div>
+    </div>
+  `;
+}
+
+// ============================================
+// USUÁRIOS (APENAS ADMIN)
+// ============================================
+
+async function renderUsuarios(container) {
+  // Buscar todos os usuários (apenas admin pode ver)
+  let usuarios = [];
+  try {
+    const snapshot = await db.collection('usuarios').get();
+    snapshot.forEach(doc => {
+      usuarios.push({ id: doc.id, ...doc.data() });
+    });
+  } catch (e) {
+    console.error(e);
+  }
+  
   container.innerHTML = `
     <div class="grid2">
       <div class="card">
         <h3>👤 Cadastrar Usuário</h3>
         <div class="formulario">
-          <div class="campo"><label>Nome Completo</label><input type="text" id="userNome" placeholder="Nome completo"></div>
-          <div class="campo"><label>E-mail</label><input type="email" id="userEmail" placeholder="email@exemplo.com"></div>
-          <div class="campo"><label>Senha</label><input type="password" id="userSenha" placeholder="Mínimo 6 caracteres"></div>
-          <div class="campo"><label>Função</label><select id="userFuncao"><option value="colaborador">Colaborador</option><option value="diretor">Diretor</option></select></div>
-          <button class="btn-primary" onclick="salvarUsuario()">Cadastrar Usuário</button>
+          <div class="campo"><label>👤 Nome Completo</label><input type="text" id="userNome" placeholder="Nome completo"></div>
+          <div class="campo"><label>📧 E-mail</label><input type="email" id="userEmail" placeholder="email@exemplo.com"></div>
+          <div class="campo"><label>🔒 Senha</label><input type="password" id="userSenha" placeholder="Mínimo 6 caracteres"></div>
+          <div class="campo"><label>👔 Função</label><select id="userFuncao"><option value="colaborador">Colaborador</option><option value="diretor">Diretor</option></select></div>
+          <button class="btn-primary" onclick="salvarUsuarioFirebase()">✅ Cadastrar Usuário</button>
         </div>
       </div>
       <div class="card">
@@ -938,7 +1890,8 @@ function renderUsuarios(container) {
           <table>
             <thead><tr><th>Nome</th><th>E-mail</th><th>Função</th></tr></thead>
             <tbody>
-              ${db.usuarios.map(u => `<tr><td><strong>${u.nome}</strong></span></td><td>${u.email}</span></td><td>${u.funcao === 'diretor' ? '👑 Diretor' : '👤 Colaborador'}</td></tr>`).join('')}
+              ${usuarios.length === 0 ? '<tr><td colspan="3" style="text-align:center; color:#888;">Nenhum usuário</td></tr>' :
+              usuarios.map(u => `<tr><td><strong>${u.nome || '—'}</strong></td><td>${u.email}</td><td>${u.funcao === 'diretor' ? '👑 Diretor' : '👤 Colaborador'}</td></tr>`).join('')}
             </tbody>
           </table>
         </div>
@@ -947,42 +1900,62 @@ function renderUsuarios(container) {
   `;
 }
 
-function salvarUsuario() {
-  let nome = document.getElementById('userNome').value;
-  let email = document.getElementById('userEmail').value;
-  let senha = document.getElementById('userSenha').value;
-  let funcao = document.getElementById('userFuncao').value;
+async function salvarUsuarioFirebase() {
+  const nome = document.getElementById('userNome').value;
+  const email = document.getElementById('userEmail').value;
+  const senha = document.getElementById('userSenha').value;
+  const funcao = document.getElementById('userFuncao').value;
   
-  if (!nome || !email || !senha) return notificar('Preencha todos os campos');
-  if (senha.length < 6) return notificar('Senha mínima 6 caracteres');
-  if (db.usuarios.find(u => u.email === email)) return notificar('E-mail já cadastrado');
+  if (!nome || !email || !senha) {
+    notificar('⚠️ Preencha todos os campos');
+    return;
+  }
+  if (senha.length < 6) {
+    notificar('⚠️ Senha mínima 6 caracteres');
+    return;
+  }
   
-  db.usuarios.push({ id: Date.now().toString(), nome, email, senha, funcao });
-  salvarDB();
-  notificar('Usuário cadastrado com sucesso!');
-  document.getElementById('userNome').value = '';
-  document.getElementById('userEmail').value = '';
-  document.getElementById('userSenha').value = '';
-  mostrarPagina('usuarios');
+  try {
+    // Criar usuário no Authentication
+    const userCredential = await auth.createUserWithEmailAndPassword(email, senha);
+    const user = userCredential.user;
+    
+    // Salvar no Firestore
+    await db.collection('usuarios').doc(user.uid).set({
+      nome,
+      email,
+      funcao,
+      criadoEm: new Date().toISOString()
+    });
+    
+    notificar('✅ Usuário cadastrado com sucesso!');
+    document.getElementById('userNome').value = '';
+    document.getElementById('userEmail').value = '';
+    document.getElementById('userSenha').value = '';
+    mostrarPagina('usuarios');
+  } catch (error) {
+    notificar('❌ Erro ao cadastrar: ' + error.message, 'error');
+  }
 }
 
 // ============================================
-// INICIAR
+// INICIAR SISTEMA
 // ============================================
 
-carregarDB();
-
-let session = localStorage.getItem('session');
-if (session) {
-  let data = JSON.parse(session);
-  let user = db.usuarios.find(u => u.id === data.id);
+// Verificar se o usuário já está logado
+auth.onAuthStateChanged(user => {
   if (user) {
     usuarioAtual = user;
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
     iniciarApp();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
   }
-}
+});
+
+console.log('📊 OVONORTE - Sistema de Gestão Avícola (Firebase)');
+console.log('🔐 Autenticação via Firebase Auth.');
 </script>
 </body>
 </html>
