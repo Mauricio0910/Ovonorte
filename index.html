@@ -18,265 +18,431 @@
 }
 
 :root {
-  --verde: #1a7a4a;
-  --verde-escuro: #0d5232;
-  --verde-bg: #e8f5ee;
-  --amarelo: #f0b429;
-  --vermelho: #c0392b;
-  --cinza-1: #f5f5f5;
-  --cinza-2: #ddd;
+  --verde: #2563eb;
+  --verde-escuro: #0f172a;
+  --verde-bg: #eef4ff;
+  --amarelo: #f59e0b;
+  --vermelho: #dc2626;
+  --cinza-1: #f3f6fb;
+  --cinza-2: #d8dee9;
   --branco: #fff;
+
+  --primario: #1d4ed8;
+  --primario-escuro: #0f172a;
+  --primario-claro: #eaf1ff;
+  --accent: #f59e0b;
+  --danger: #dc2626;
+  --texto: #172033;
+  --texto-suave: #64748b;
+  --borda: #d9e2ef;
+  --card: #ffffff;
+  --fundo: #f3f6fb;
+  --sidebar: #111827;
+  --sidebar-2: #1f2937;
 }
 
 body {
-  font-family: Arial, sans-serif;
-  background: var(--cinza-1);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
 }
 
 /* Login */
 #loginScreen {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--verde-escuro), var(--verde));
+  background:
+    radial-gradient(circle at top left, rgba(245,158,11,.28), transparent 28%),
+    linear-gradient(135deg, #111827 0%, #1e3a8a 58%, #475569 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 1000;
+  padding: 18px;
 }
 
 .loginBox {
-  background: var(--branco);
-  border-radius: 20px;
-  padding: 40px;
-  width: 90%;
-  max-width: 380px;
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 28px;
+  padding: 38px;
+  width: 92%;
+  max-width: 410px;
   text-align: center;
+  box-shadow: 0 28px 80px rgba(15,23,42,.35);
+  backdrop-filter: blur(14px);
 }
 
 .loginBox h1 {
-  color: var(--verde-escuro);
-  margin: 10px 0;
+  color: var(--primario-escuro);
+  margin: 10px 0 4px;
+  letter-spacing: .04em;
+}
+
+.loginBox p {
+  color: var(--texto-suave);
 }
 
 .loginBox input {
   width: 100%;
-  padding: 12px;
+  padding: 13px 14px;
   margin: 10px 0;
-  border: 1px solid var(--cinza-2);
-  border-radius: 8px;
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  background: #f8fafc;
+  color: var(--texto);
+  font-size: 14px;
+}
+
+.loginBox input:focus {
+  outline: none;
+  border-color: var(--primario);
+  box-shadow: 0 0 0 4px rgba(37,99,235,.12);
 }
 
 .loginBox button {
   width: 100%;
-  padding: 12px;
-  background: var(--verde);
+  padding: 13px;
+  background: linear-gradient(135deg, var(--primario), #1e40af);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 14px;
   cursor: pointer;
   font-size: 16px;
+  font-weight: 800;
   margin-top: 10px;
+  box-shadow: 0 12px 28px rgba(29,78,216,.24);
 }
 
 .loginBox button:hover {
-  background: var(--verde-escuro);
+  transform: translateY(-1px);
+  filter: brightness(.98);
+}
+
+.loginBox a {
+  color: var(--primario);
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .erro {
-  color: var(--vermelho);
-  background: #fde8e6;
-  padding: 10px;
-  border-radius: 8px;
-  margin: 10px 0;
+  color: #991b1b;
+  background: #fee2e2;
+  padding: 11px;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  margin: 12px 0;
   display: none;
 }
 
 /* App */
 #appScreen {
   display: none;
+  min-height: 100vh;
+  grid-template-columns: 286px minmax(0, 1fr);
+}
+
+.sidebar {
+  background:
+    linear-gradient(180deg, rgba(30,64,175,.55), transparent 42%),
+    var(--sidebar);
+  color: white;
+  min-height: 100vh;
+  padding: 22px 16px;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  border-right: 1px solid rgba(255,255,255,.08);
+  box-shadow: 20px 0 60px rgba(15,23,42,.12);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 22px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+.brandIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.12);
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+}
+
+.brandTitle {
+  font-weight: 900;
+  letter-spacing: .06em;
+  line-height: 1.1;
+}
+
+.brandSubtitle {
+  font-size: 12px;
+  color: #cbd5e1;
+  margin-top: 4px;
+}
+
+.mainApp {
+  min-width: 0;
+  min-height: 100vh;
 }
 
 .menuSuperior {
-  background: var(--verde-escuro);
-  padding: 12px;
+  background: transparent;
+  padding: 10px 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  flex-direction: column;
+  gap: 16px;
+  position: static;
+  top: auto;
+  z-index: auto;
+}
+
+.menuGrupoTitulo {
+  color: #94a3b8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-weight: 900;
+  padding: 0 10px;
+  margin: 6px 0 -8px;
 }
 
 .menuSuperior button {
-  background: rgba(255,255,255,0.2);
-  color: white;
+  width: 100%;
+  background: transparent;
+  color: #e5e7eb;
   border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 12px 13px;
+  border-radius: 14px;
   cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: .16s ease;
 }
 
-.menuSuperior button:hover, .menuSuperior button.ativo {
-  background: var(--amarelo);
-  color: var(--verde-escuro);
+.menuSuperior button:hover {
+  background: rgba(255,255,255,.08);
+  color: white;
+  transform: translateX(2px);
+}
+
+.menuSuperior button.ativo {
+  background: #ffffff;
+  color: var(--primario-escuro);
+  box-shadow: 0 14px 34px rgba(0,0,0,.22);
+}
+
+.topbar {
+  background: rgba(255,255,255,.86);
+  backdrop-filter: blur(10px);
+  padding: 18px 24px;
+  min-height: 76px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  border-bottom: 1px solid var(--borda);
+  position: sticky;
+  top: 0;
+  z-index: 80;
+}
+
+.topbar h2 {
+  color: var(--primario-escuro);
+  font-size: 22px;
+  letter-spacing: -.02em;
 }
 
 .conteudo {
-  padding: 20px;
+  padding: 24px;
+  max-width: 1480px;
+  margin: 0 auto;
 }
 
 .card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 22px;
+  padding: 22px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 14px 45px rgba(15,23,42,.07);
 }
 
 .card h3 {
   margin-bottom: 16px;
-  color: var(--verde-escuro);
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--verde-bg);
+  color: var(--primario-escuro);
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+  letter-spacing: -.01em;
 }
 
 .formulario {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .campo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .campo label {
-  font-weight: 600;
-  color: var(--verde-escuro);
-  font-size: 14px;
+  font-weight: 800;
+  color: #334155;
+  font-size: 13px;
 }
 
 .campo input, .campo select, .campo textarea {
-  padding: 12px;
-  border: 1px solid var(--cinza-2);
-  border-radius: 8px;
+  padding: 12px 13px;
+  border: 1px solid var(--borda);
+  border-radius: 14px;
   font-size: 14px;
   width: 100%;
+  background: #f8fafc;
+  color: var(--texto);
 }
 
 .campo input:focus, .campo select:focus, .campo textarea:focus {
   outline: none;
-  border-color: var(--verde);
+  border-color: var(--primario);
+  box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+}
+
+button {
+  font-family: inherit;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.topbar button {
+  border: none;
+  border-radius: 13px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 11px 16px;
+  transition: .15s ease;
 }
 
 .btn-primary {
-  background: var(--verde);
+  background: linear-gradient(135deg, var(--primario), #1e40af);
   color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
   margin-top: 8px;
+  box-shadow: 0 10px 22px rgba(29,78,216,.20);
 }
 
-.btn-primary:hover {
-  background: var(--verde-escuro);
-}
-
-.btn-danger {
-  background: var(--vermelho);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.btn-danger:hover {
-  background: #a93226;
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover,
+.topbar button:hover {
+  transform: translateY(-1px);
+  filter: brightness(.98);
 }
 
 .btn-secondary {
-  background: #555;
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-danger {
+  background: var(--danger);
   color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
 }
 
-.btn-secondary:hover {
-  background: #333;
-}
-
-.btn-small {
-  padding: 6px 10px;
-  font-size: 12px;
-  margin: 2px;
-}
-
-.acoes {
-  white-space: nowrap;
+.btn-danger:hover {
+  background: #b91c1c;
 }
 
 /* KPIs */
 .kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 16px;
   margin-bottom: 20px;
 }
 
 .kpi {
-  background: white;
-  border-radius: 12px;
-  padding: 15px;
-  border-left: 4px solid var(--verde);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border-radius: 22px;
+  padding: 18px;
+  border: 1px solid var(--borda);
+  border-left: 5px solid var(--primario);
+  box-shadow: 0 12px 32px rgba(15,23,42,.06);
 }
 
 .kpi-label {
   font-size: 11px;
-  color: #888;
+  color: var(--texto-suave);
   text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 900;
 }
 
 .kpi-valor {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 26px;
+  font-weight: 900;
+  margin-top: 6px;
+  color: #0f172a;
 }
 
 .grid2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(300px, .85fr) minmax(360px, 1.15fr);
   gap: 20px;
+  align-items: start;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 th, td {
   text-align: left;
-  padding: 10px;
-  border-bottom: 1px solid var(--cinza-2);
+  padding: 12px;
+  border-bottom: 1px solid #edf2f7;
+  vertical-align: middle;
+}
+
+th {
+  color: #475569;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  font-weight: 900;
+  background: #f8fafc;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
 }
 
 .badge {
-  background: var(--verde-bg);
-  padding: 4px 10px;
-  border-radius: 20px;
+  background: #eef2ff;
+  color: #1e3a8a;
+  border: 1px solid #dbeafe;
+  padding: 6px 11px;
+  border-radius: 999px;
   font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .pagina {
@@ -287,30 +453,24 @@ th, td {
   display: block;
 }
 
-.topbar {
-  background: white;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--cinza-2);
-}
-
 .notificacao {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 22px;
+  right: 22px;
   background: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  color: var(--texto);
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--borda);
+  box-shadow: 0 18px 48px rgba(15,23,42,.20);
   display: none;
   z-index: 2000;
 }
 
 .rateio-box {
-  background: var(--verde-bg);
-  border-radius: 8px;
+  background: #eef2ff;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
   padding: 16px;
   margin-bottom: 16px;
 }
@@ -318,21 +478,105 @@ th, td {
 .rateio-row {
   display: flex;
   justify-content: space-between;
-  padding: 6px 0;
+  padding: 7px 0;
+  gap: 12px;
 }
 
 .loading {
   text-align: center;
-  padding: 40px;
-  color: #888;
+  padding: 46px;
+  color: var(--texto-suave);
 }
 
-@media (max-width: 768px) {
+.acoes {
+  white-space: nowrap;
+}
+
+#resultadoLimpeza {
+  background: #f8fafc !important;
+  border: 1px solid var(--borda);
+}
+
+.admin-only-note {
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+  padding: 14px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.quick-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 980px) {
+  #appScreen {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .brand {
+    padding-bottom: 14px;
+  }
+
+  .menuSuperior {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 6px;
+  }
+
+  .menuGrupoTitulo {
+    display: none;
+  }
+
+  .menuSuperior button {
+    min-width: max-content;
+    justify-content: center;
+  }
+
+  .topbar {
+    position: static;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .grid2 {
     grid-template-columns: 1fr;
   }
-  .menuSuperior {
-    flex-direction: column;
+
+  .conteudo {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .loginBox {
+    padding: 28px 22px;
+  }
+
+  .card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .kpis {
+    grid-template-columns: 1fr;
+  }
+
+  th, td {
+    padding: 10px 9px;
+    font-size: 13px;
   }
 }
 </style>
@@ -357,21 +601,32 @@ th, td {
 
 <!-- App Principal -->
 <div id="appScreen">
-  <div class="topbar">
-    <div>
-      <h2 id="tituloPagina">OVONORTE</h2>
-      <div class="badge" id="infoAves">Carregando...</div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brandIcon">🥚</div>
+      <div>
+        <div class="brandTitle">OVONORTE</div>
+        <div class="brandSubtitle">Gestão avícola</div>
+      </div>
     </div>
-    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-      <span class="badge" id="firebaseStatus">Firebase: verificando...</span>
-      <span class="badge" id="usuarioLogado"></span>
-      <button onclick="fazerLogout()" style="background:#555; color:white; border:none; border-radius:8px; padding:8px 16px; cursor:pointer;">Sair</button>
+    <nav class="menuSuperior" id="menuSuperior"></nav>
+  </aside>
+
+  <main class="mainApp">
+    <div class="topbar">
+      <div>
+        <h2 id="tituloPagina">OVONORTE</h2>
+        <div class="badge" id="infoAves">Carregando...</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+        <span class="badge" id="firebaseStatus">Firebase: verificando...</span>
+        <span class="badge" id="usuarioLogado"></span>
+        <button onclick="fazerLogout()" style="background:#0f172a; color:white; border:none; border-radius:13px; padding:10px 16px; cursor:pointer;">Sair</button>
+      </div>
     </div>
-  </div>
-  
-  <div class="menuSuperior" id="menuSuperior"></div>
-  
-  <div class="conteudo" id="conteudoArea"></div>
+
+    <div class="conteudo" id="conteudoArea"></div>
+  </main>
 </div>
 
 <div id="notificacao" class="notificacao"></div>
@@ -401,6 +656,24 @@ const db = firebase.firestore();
 
 let usuarioAtual = null;
 let perfilUsuarioAtual = null;
+
+function usuarioEhAdmin() {
+  const p = perfilUsuarioAtual || {};
+  return p.funcao === 'diretor'
+    || p.funcao === 'admin'
+    || p.perfil === 'admin'
+    || p.tipo === 'admin'
+    || p.admin === true
+    || p.isAdmin === true
+    || p.role === 'admin';
+}
+
+function exigirAdmin(acao = 'acessar esta área') {
+  if (usuarioEhAdmin()) return true;
+  notificar(`⛔ Apenas administrador/diretor pode ${acao}.`, 'error');
+  return false;
+}
+
 
 const COLECOES_OPERACIONAIS_PADRAO = [
   // Coleções usadas diretamente por este sistema
@@ -650,7 +923,7 @@ function fazerLogin() {
     .then(userCredential => {
       usuarioAtual = userCredential.user;
       document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('appScreen').style.display = 'block';
+      document.getElementById('appScreen').style.display = 'grid';
       iniciarApp();
     })
     .catch(error => {
@@ -972,6 +1245,7 @@ async function atualizarResumoTopo() {
 
 async function apagarLancamentosHoje() {
   if (!usuarioAtual) return;
+  if (!exigirAdmin('apagar lançamentos')) return;
 
   const data = hojeISO();
   const confirmar = confirm(`Apagar todos os lançamentos do dia ${formatarData(data)} nas coleções operacionais?`);
@@ -1006,6 +1280,7 @@ async function apagarLancamentosHoje() {
 
 async function limparBaseOperacional(apagarTudo = false) {
   if (!usuarioAtual) return;
+  if (!exigirAdmin('limpar a base')) return;
 
   const colecoes = obterColecoesManutencao();
   if (!colecoes.length) {
@@ -1066,6 +1341,7 @@ async function limparBaseOperacional(apagarTudo = false) {
 
 async function limparHistoricosRevendasCustos() {
   if (!usuarioAtual) return;
+  if (!exigirAdmin('apagar históricos de teste')) return;
 
   const confirmar = prompt(
     'Esta rotina apaga especialmente custos, vendas, revendas e históricos em várias variações de nome. Digite APAGAR TESTES para continuar.'
@@ -1121,6 +1397,7 @@ async function limparHistoricosRevendasCustos() {
 
 async function diagnosticarColecoes() {
   if (!usuarioAtual) return;
+  if (!exigirAdmin('diagnosticar coleções')) return;
 
   const colecoes = obterColecoesManutencao();
   const resultado = [];
@@ -1163,23 +1440,55 @@ async function iniciarApp() {
     console.error(e);
   }
 
-  document.getElementById('usuarioLogado').textContent =
-    perfilUsuarioAtual?.nome || usuarioAtual.email || 'Usuário';
+  const nomeUsuario = perfilUsuarioAtual?.nome || usuarioAtual.email || 'Usuário';
+  const perfilTexto = usuarioEhAdmin() ? 'Administrador' : (perfilUsuarioAtual?.funcao || 'Colaborador');
 
-  let menu = document.getElementById('menuSuperior');
-  let paginas = ['dashboard', 'aves', 'ovos', 'racao', 'medicacao', 'mortalidade', 'custos', 'custo-unitario', 'relatorios', 'manutencao'];
-  let nomes = ['📊 Dashboard', '🐔 Aves', '🥚 Ovos', '🌾 Ração', '💊 Medicação', '⚠️ Mortalidade', '💰 Custos', '📈 Custo Unitário', '📄 Relatórios', '🧹 Manutenção'];
+  document.getElementById('usuarioLogado').textContent = `${nomeUsuario} • ${perfilTexto}`;
 
-  // Verificar se o usuário tem permissão de admin
-  if (perfilUsuarioAtual?.funcao === 'diretor') {
-    paginas.push('usuarios');
-    nomes.push('👤 Usuários');
+  const menu = document.getElementById('menuSuperior');
+  const gruposMenu = [
+    {
+      titulo: 'Visão geral',
+      itens: [
+        { pagina: 'dashboard', nome: '📊 Painel' },
+        { pagina: 'relatorios', nome: '📄 Relatórios' }
+      ]
+    },
+    {
+      titulo: 'Produção',
+      itens: [
+        { pagina: 'aves', nome: '🐔 Aves' },
+        { pagina: 'ovos', nome: '🥚 Coletas de Ovos' },
+        { pagina: 'racao', nome: '🌾 Ração e Água' },
+        { pagina: 'medicacao', nome: '💊 Medicação' },
+        { pagina: 'mortalidade', nome: '⚠️ Mortalidade' }
+      ]
+    },
+    {
+      titulo: 'Financeiro',
+      itens: [
+        { pagina: 'custos', nome: '💰 Custos' },
+        { pagina: 'custo-unitario', nome: '📈 Custo Unitário' }
+      ]
+    }
+  ];
+
+  if (usuarioEhAdmin()) {
+    gruposMenu.push({
+      titulo: 'Administração',
+      itens: [
+        { pagina: 'usuarios', nome: '👤 Usuários' },
+        { pagina: 'manutencao', nome: '🧹 Manutenção da Base' }
+      ]
+    });
   }
 
-  menu.innerHTML = '';
-  for (let i = 0; i < paginas.length; i++) {
-    menu.innerHTML += `<button data-pagina="${paginas[i]}" onclick="mostrarPagina('${paginas[i]}', this)">${nomes[i]}</button>`;
-  }
+  menu.innerHTML = gruposMenu.map(grupo => `
+    <div class="menuGrupoTitulo">${grupo.titulo}</div>
+    ${grupo.itens.map(item => `
+      <button data-pagina="${item.pagina}" onclick="mostrarPagina('${item.pagina}', this)">${item.nome}</button>
+    `).join('')}
+  `).join('');
 
   atualizarStatusFirebase(true);
   mostrarPagina('dashboard');
@@ -1192,15 +1501,20 @@ async function iniciarApp() {
 let paginaAtual = 'dashboard';
 
 function mostrarPagina(pagina, botao = null) {
+  if ((pagina === 'manutencao' || pagina === 'usuarios') && !exigirAdmin('acessar esta área')) {
+    pagina = 'dashboard';
+    botao = null;
+  }
+
   paginaAtual = pagina;
   document.querySelectorAll('#menuSuperior button').forEach(btn => {
     btn.classList.remove('ativo');
     if (!botao && btn.dataset.pagina === pagina) btn.classList.add('ativo');
   });
   if (botao) botao.classList.add('ativo');
-  
-  let titulos = {
-    dashboard: '📊 Dashboard',
+
+  const titulos = {
+    dashboard: '📊 Painel de Controle',
     aves: '🐔 Controle de Aves',
     ovos: '🥚 Coleta de Ovos',
     racao: '🌾 Ração e Água',
@@ -1212,12 +1526,12 @@ function mostrarPagina(pagina, botao = null) {
     usuarios: '👤 Usuários',
     manutencao: '🧹 Manutenção da Base'
   };
-  
+
   document.getElementById('tituloPagina').textContent = titulos[pagina] || 'OVONORTE';
-  
-  let container = document.getElementById('conteudoArea');
+
+  const container = document.getElementById('conteudoArea');
   container.innerHTML = '<div class="loading">Carregando...</div>';
-  
+
   if (pagina === 'dashboard') renderDashboard(container);
   else if (pagina === 'aves') renderAves(container);
   else if (pagina === 'ovos') renderOvos(container);
@@ -1311,9 +1625,10 @@ async function renderDashboard(container) {
       <p style="margin-top:12px; font-size:12px; color:#888;">
         💡 <strong>Dica:</strong> Comece cadastrando suas aves e depois registre as coletas de ovos.
       </p>
-      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn-secondary" onclick="apagarLancamentosHoje()">🧹 Apagar lançamentos de hoje</button>
-        <button class="btn-danger" onclick="mostrarPagina('manutencao')">⚠️ Limpar histórico/testes</button>
+      <div class="quick-actions">
+        <button class="btn-primary" onclick="mostrarPagina('ovos')">🥚 Nova coleta</button>
+        <button class="btn-secondary" onclick="mostrarPagina('aves')">🐔 Movimentar aves</button>
+        <button class="btn-secondary" onclick="mostrarPagina('custos')">💰 Lançar custo</button>
       </div>
     </div>
     
@@ -1814,11 +2129,16 @@ async function renderRelatorios(container) {
 // ============================================
 
 async function renderManutencao(container) {
+  if (!exigirAdmin('acessar a manutenção')) {
+    container.innerHTML = '<div class="card"><h3>⛔ Acesso restrito</h3><p>Esta área é exclusiva do administrador/diretor.</p></div>';
+    return;
+  }
   const colecoesPadrao = COLECOES_OPERACIONAIS_PADRAO.join('\n');
 
   container.innerHTML = `
     <div class="card">
       <h3>🧹 Limpeza de dados de teste e históricos</h3>
+      <div class="admin-only-note">Área restrita: somente administrador/diretor visualiza e executa estas rotinas.</div>
       <p>
         Use esta área para apagar dados fictícios gerados durante o desenvolvimento, incluindo históricos de vendas/revendas,
         produção, custos, aves, ração, medicações e mortalidade.
@@ -1861,6 +2181,10 @@ async function renderManutencao(container) {
 // ============================================
 
 async function renderUsuarios(container) {
+  if (!exigirAdmin('acessar usuários')) {
+    container.innerHTML = '<div class="card"><h3>⛔ Acesso restrito</h3><p>Esta área é exclusiva do administrador/diretor.</p></div>';
+    return;
+  }
   // Buscar todos os usuários (apenas admin pode ver)
   let usuarios = [];
   try {
@@ -1947,7 +2271,7 @@ auth.onAuthStateChanged(user => {
   if (user) {
     usuarioAtual = user;
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('appScreen').style.display = 'grid';
     iniciarApp();
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
